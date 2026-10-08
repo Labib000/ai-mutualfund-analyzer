@@ -7,8 +7,8 @@ use App\Models\Holding;
 use App\Models\Scheme;
 use App\Models\Sip;
 use App\Models\Transaction;
+use App\Portfolio\PortfolioPerformance;
 use App\Portfolio\SipSchedule;
-use App\Portfolio\UnitCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,29 +21,24 @@ class HoldingController extends Controller
     private const SEARCH_LIMIT = 20;
 
     public function __construct(
-        private readonly UnitCalculator $calculator,
+        private readonly PortfolioPerformance $performance,
         private readonly SipSchedule $schedule,
     ) {}
 
     /**
-     * List the user's funds.
+     * List the user's funds with their returns and the portfolio total.
      */
     public function index(Request $request): Response
     {
-        $holdings = $request->user()->holdings()
-            ->withUnitsHeld()
-            ->with('scheme')
-            ->get()
-            ->sortBy('scheme.name')
-            ->values();
+        ['holdings' => $holdings, 'performances' => $performances, 'total' => $total] = $this->performance->forUser($request->user());
 
         return Inertia::render('holdings/index', [
-            'holdings' => $holdings->map(fn (Holding $holding) => [
+            'holdings' => $holdings->sortBy('scheme.name')->values()->map(fn (Holding $holding) => [
                 'id' => $holding->id,
                 'scheme' => $this->schemeSummary($holding->scheme),
-                'units' => $this->units($holding),
-                'value_paise' => $this->valuePaise($holding),
+                'performance' => $performances[$holding->id]->toArray(),
             ]),
+            'summary' => $total->toArray(),
         ]);
     }
 
@@ -89,14 +84,12 @@ class HoldingController extends Controller
      */
     public function show(Holding $holding): Response
     {
-        /** @var Holding $holding */
-        $holding = Holding::query()->withUnitsHeld()->with('scheme')->findOrFail($holding->id);
         $today = CarbonImmutable::today();
+        $performance = $this->performance->forHolding($holding);
 
-        $transactions = $holding->transactions()
-            ->orderByDesc('txn_date')
-            ->orderByDesc('id')
-            ->get()
+        $transactions = $holding->transactions
+            ->sortBy([['txn_date', 'desc'], ['id', 'desc']])
+            ->values()
             ->map(fn (Transaction $transaction) => [
                 'id' => $transaction->id,
                 'type' => $transaction->type->value,
@@ -128,8 +121,7 @@ class HoldingController extends Controller
             'holding' => [
                 'id' => $holding->id,
                 'scheme' => $this->schemeSummary($holding->scheme),
-                'units' => $this->units($holding),
-                'value_paise' => $this->valuePaise($holding),
+                'performance' => $performance->toArray(),
             ],
             'transactions' => $transactions,
             'sips' => $sips,
@@ -191,29 +183,6 @@ class HoldingController extends Controller
             'latest_nav' => $scheme->latest_nav,
             'latest_nav_date' => $scheme->latest_nav_date?->toDateString(),
         ];
-    }
-
-    /**
-     * @return numeric-string
-     */
-    private function units(Holding $holding): string
-    {
-        return bcadd($holding->units_held ?? '0', '0', UnitCalculator::UNITS_SCALE);
-    }
-
-    /**
-     * Current value at the latest NAV, in paise.
-     */
-    private function valuePaise(Holding $holding): int
-    {
-        $units = $this->units($holding);
-        $nav = $holding->scheme->latest_nav;
-
-        if ($nav === null || bccomp($units, '0', UnitCalculator::UNITS_SCALE) <= 0) {
-            return 0;
-        }
-
-        return $this->calculator->redemptionAmount($units, $nav);
     }
 
     /**

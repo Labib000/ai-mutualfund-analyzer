@@ -12,11 +12,29 @@ export type SchemeSearchResult = SchemeSummary & {
     is_held: boolean;
 };
 
+export type XirrStatus =
+    | 'ok'
+    | 'short_period'
+    | 'too_recent'
+    | 'not_meaningful';
+
+export type Performance = {
+    units_held: string | null;
+    invested_paise: number;
+    value_paise: number;
+    unrealised_gain_paise: number;
+    realised_gain_paise: number;
+    total_gain_paise: number;
+    absolute_return_pct: number | null;
+    xirr_pct: number | null;
+    xirr_status: XirrStatus;
+    valued_on: string | null;
+};
+
 export type HoldingSummary = {
     id: number;
     scheme: SchemeSummary;
-    units: string;
-    value_paise: number;
+    performance: Performance;
 };
 
 export type TransactionType = 'purchase' | 'sip_installment' | 'redemption';

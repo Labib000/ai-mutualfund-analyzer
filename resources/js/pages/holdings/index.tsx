@@ -1,19 +1,22 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus, WalletCards } from 'lucide-react';
 import Heading from '@/components/heading';
+import Gain from '@/components/portfolio/gain';
+import StatTile from '@/components/portfolio/stat-tile';
+import XirrValue from '@/components/portfolio/xirr-value';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatDate, formatNav, formatPaise, formatUnits } from '@/lib/format';
+import { formatDate, formatPaise, formatSignedPaise } from '@/lib/format';
 import { create, index, show } from '@/routes/holdings';
-import type { HoldingSummary } from '@/types/portfolio';
+import type { HoldingSummary, Performance } from '@/types/portfolio';
 
 export default function HoldingsIndex({
     holdings,
+    summary,
 }: {
     holdings: HoldingSummary[];
+    summary: Performance;
 }) {
-    const totalPaise = holdings.reduce((sum, h) => sum + h.value_paise, 0);
-
     return (
         <>
             <Head title="Portfolio" />
@@ -24,7 +27,7 @@ export default function HoldingsIndex({
                         title="Portfolio"
                         description={
                             holdings.length > 0
-                                ? `${holdings.length} fund${holdings.length === 1 ? '' : 's'} · current value ${formatPaise(totalPaise)}`
+                                ? `${holdings.length} fund${holdings.length === 1 ? '' : 's'}${summary.valued_on ? ` · valued at NAVs up to ${formatDate(summary.valued_on)}` : ''}`
                                 : 'Add the mutual funds you hold to start tracking them.'
                         }
                     />
@@ -54,83 +57,115 @@ export default function HoldingsIndex({
                         </Button>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-xl border">
-                        <table className="w-full text-sm">
-                            <thead className="bg-muted/50 text-left text-muted-foreground">
-                                <tr>
-                                    <th className="px-4 py-3 font-medium">
-                                        Fund
-                                    </th>
-                                    <th className="px-4 py-3 text-right font-medium">
-                                        Units
-                                    </th>
-                                    <th className="px-4 py-3 text-right font-medium">
-                                        Latest NAV
-                                    </th>
-                                    <th className="px-4 py-3 text-right font-medium">
-                                        Current value
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {holdings.map((holding) => (
-                                    <tr key={holding.id} className="border-t">
-                                        <td className="px-4 py-3">
-                                            <Link
-                                                href={show(holding.id)}
-                                                className="font-medium hover:underline"
-                                            >
-                                                {holding.scheme.name}
-                                            </Link>
-                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                <span>
-                                                    {holding.scheme.category}
-                                                </span>
-                                                {holding.scheme.plan && (
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="capitalize"
-                                                    >
-                                                        {holding.scheme.plan}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-right tabular-nums">
-                                            {formatUnits(holding.units)}
-                                        </td>
-                                        <td className="px-4 py-3 text-right tabular-nums">
-                                            {holding.scheme.latest_nav ? (
-                                                <>
-                                                    {formatNav(
-                                                        holding.scheme
-                                                            .latest_nav,
-                                                    )}
-                                                    {holding.scheme
-                                                        .latest_nav_date && (
-                                                        <div className="text-xs text-muted-foreground">
-                                                            {formatDate(
-                                                                holding.scheme
-                                                                    .latest_nav_date,
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                '—'
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-right font-medium tabular-nums">
-                                            {formatPaise(holding.value_paise)}
-                                        </td>
+                    <>
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <StatTile label="Invested">
+                                {formatPaise(summary.invested_paise)}
+                            </StatTile>
+                            <StatTile label="Current value">
+                                {formatPaise(summary.value_paise)}
+                            </StatTile>
+                            <StatTile
+                                label="Total gain"
+                                note={
+                                    summary.realised_gain_paise !== 0 &&
+                                    `includes ${formatSignedPaise(summary.realised_gain_paise)} realised on redemptions`
+                                }
+                            >
+                                <Gain paise={summary.total_gain_paise} />
+                            </StatTile>
+                            <StatTile label="XIRR">
+                                <XirrValue performance={summary} />
+                            </StatTile>
+                        </div>
+
+                        <div className="overflow-x-auto rounded-xl border">
+                            <table className="w-full text-sm">
+                                <thead className="bg-muted/50 text-left text-muted-foreground">
+                                    <tr>
+                                        <th className="px-4 py-3 font-medium">
+                                            Fund
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium">
+                                            Invested
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium">
+                                            Current value
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium">
+                                            Gain
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium">
+                                            XIRR
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {holdings.map((holding) => (
+                                        <HoldingRow
+                                            key={holding.id}
+                                            holding={holding}
+                                        />
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground">
+                            Invested is the cost of the units you still hold,
+                            oldest units sold first. Gain is current value minus
+                            invested. * XIRR annualised from less than a year.
+                        </p>
+                    </>
                 )}
             </div>
         </>
+    );
+}
+
+function HoldingRow({ holding }: { holding: HoldingSummary }) {
+    const { performance } = holding;
+
+    return (
+        <tr className="border-t">
+            <td className="px-4 py-3">
+                <Link
+                    href={show(holding.id)}
+                    className="font-medium hover:underline"
+                >
+                    {holding.scheme.name}
+                </Link>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span>{holding.scheme.category}</span>
+                    {holding.scheme.plan && (
+                        <Badge variant="outline" className="capitalize">
+                            {holding.scheme.plan}
+                        </Badge>
+                    )}
+                </div>
+            </td>
+            <td className="px-4 py-3 text-right tabular-nums">
+                {formatPaise(performance.invested_paise)}
+            </td>
+            <td className="px-4 py-3 text-right font-medium tabular-nums">
+                {formatPaise(performance.value_paise)}
+            </td>
+            <td className="px-4 py-3 text-right whitespace-nowrap">
+                <Gain
+                    paise={performance.unrealised_gain_paise}
+                    pct={performance.absolute_return_pct}
+                />
+                {performance.realised_gain_paise !== 0 && (
+                    <div className="text-xs text-muted-foreground">
+                        realised{' '}
+                        {formatSignedPaise(performance.realised_gain_paise)}
+                    </div>
+                )}
+            </td>
+            <td className="px-4 py-3 text-right">
+                <XirrValue performance={performance} />
+            </td>
+        </tr>
     );
 }
 

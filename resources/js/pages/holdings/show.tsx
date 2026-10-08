@@ -5,9 +5,12 @@ import SipController from '@/actions/App/Http/Controllers/Portfolio/SipControlle
 import TransactionController from '@/actions/App/Http/Controllers/Portfolio/TransactionController';
 import AlertError from '@/components/alert-error';
 import ConfirmDialog from '@/components/portfolio/confirm-dialog';
+import Gain from '@/components/portfolio/gain';
 import PurchaseDialog from '@/components/portfolio/purchase-dialog';
 import RedemptionDialog from '@/components/portfolio/redemption-dialog';
 import SipDialog from '@/components/portfolio/sip-dialog';
+import StatTile from '@/components/portfolio/stat-tile';
+import XirrValue from '@/components/portfolio/xirr-value';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +24,7 @@ import {
     formatDate,
     formatNav,
     formatPaise,
+    formatSignedPaise,
     formatUnits,
     ordinal,
 } from '@/lib/format';
@@ -53,7 +57,9 @@ export default function HoldingShow({
     const actionErrors = [errors.transaction, errors.sip].flatMap((error) =>
         error ? [String(error)] : [],
     );
-    const hasUnits = Number(holding.units) > 0;
+    const { performance } = holding;
+    const unitsHeld = performance.units_held ?? '0';
+    const hasUnits = Number(unitsHeld) > 0;
 
     return (
         <>
@@ -101,28 +107,37 @@ export default function HoldingShow({
                     />
                 )}
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <Stat
-                        label="Units held"
-                        value={formatUnits(holding.units)}
-                    />
-                    <Stat
-                        label="Latest NAV"
-                        value={
-                            holding.scheme.latest_nav
-                                ? formatNav(holding.scheme.latest_nav)
-                                : '—'
-                        }
-                        note={
-                            holding.scheme.latest_nav_date
-                                ? `as of ${formatDate(holding.scheme.latest_nav_date)}`
-                                : undefined
-                        }
-                    />
-                    <Stat
-                        label="Current value"
-                        value={formatPaise(holding.value_paise)}
-                    />
+                <div className="space-y-2">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <StatTile label="Invested">
+                            {formatPaise(performance.invested_paise)}
+                        </StatTile>
+                        <StatTile label="Current value">
+                            {formatPaise(performance.value_paise)}
+                        </StatTile>
+                        <StatTile
+                            label="Gain"
+                            note={
+                                performance.realised_gain_paise !== 0 &&
+                                `plus ${formatSignedPaise(performance.realised_gain_paise)} realised on redemptions`
+                            }
+                        >
+                            <Gain
+                                paise={performance.unrealised_gain_paise}
+                                pct={performance.absolute_return_pct}
+                            />
+                        </StatTile>
+                        <StatTile label="XIRR">
+                            <XirrValue performance={performance} />
+                        </StatTile>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        {formatUnits(unitsHeld)} units
+                        {holding.scheme.latest_nav &&
+                            ` · NAV ${formatNav(holding.scheme.latest_nav)}`}
+                        {holding.scheme.latest_nav_date &&
+                            ` on ${formatDate(holding.scheme.latest_nav_date)}`}
+                    </p>
                 </div>
 
                 {sips.length > 0 && (
@@ -216,24 +231,6 @@ export default function HoldingShow({
                 </div>
             </div>
         </>
-    );
-}
-
-function Stat({
-    label,
-    value,
-    note,
-}: {
-    label: string;
-    value: string;
-    note?: string;
-}) {
-    return (
-        <div className="rounded-xl border p-4">
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-            {note && <p className="text-xs text-muted-foreground">{note}</p>}
-        </div>
     );
 }
 

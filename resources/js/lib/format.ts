@@ -20,6 +20,27 @@ export function formatPaise(paise: number): string {
 }
 
 /**
+ * Format a signed amount of paise with an explicit sign, e.g. "+₹1,234.50" or "−₹50.00".
+ */
+export function formatSignedPaise(paise: number): string {
+    const sign = paise > 0 ? '+' : paise < 0 ? '−' : '';
+
+    return `${sign}${inr.format(Math.abs(paise) / 100)}`;
+}
+
+/**
+ * Format a percentage with 2 decimals, optionally signed, e.g. "+12.34%".
+ */
+export function formatPercent(
+    pct: number,
+    { signed = false }: { signed?: boolean } = {},
+): string {
+    const sign = signed && pct > 0 ? '+' : pct < 0 ? '−' : '';
+
+    return `${sign}${Math.abs(pct).toFixed(2)}%`;
+}
+
+/**
  * Paise as a plain rupee string for form inputs, e.g. 500000 → "5000".
  */
 export function paiseToRupeeInput(paise: number): string {

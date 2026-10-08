@@ -42,9 +42,14 @@ class HoldingTest extends TestCase
                 ->component('holdings/index')
                 ->has('holdings', 1)
                 ->where('holdings.0.id', $this->holding->id)
-                ->where('holdings.0.units', '300.000')
-                ->where('holdings.0.value_paise', (int) bcmul($this->navOn('2026-10-07'), '30000', 0))
-                ->where('holdings.0.scheme.name', "Axis Children's Fund - Direct Plan - Growth Option"));
+                ->where('holdings.0.performance.units_held', '300.000')
+                ->where('holdings.0.performance.value_paise', (int) bcmul($this->navOn('2026-10-07'), '30000', 0))
+                // FIFO: the 43.507 units sold cost ₹10,000 × 43.507 / 343.507 = ₹1,266.55.
+                ->where('holdings.0.performance.invested_paise', 873345)
+                ->where('holdings.0.performance.xirr_status', 'too_recent')
+                ->where('holdings.0.scheme.name', "Axis Children's Fund - Direct Plan - Growth Option")
+                ->where('summary.invested_paise', 873345)
+                ->where('summary.units_held', null));
     }
 
     public function test_the_portfolio_only_shows_the_users_own_holdings()

@@ -129,8 +129,10 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 
 ### 1c. Calculations
 
-- Per fund and overall: total invested, units held, current value, absolute gain, absolute return %, XIRR.
-- **XIRR:** cash flows are negative for purchases, positive for redemptions, plus current value as a positive flow today. Use Excel's convention (each year is 365 days, time measured from the first cash flow) so results match spreadsheet `XIRR()`. Solve with Newton-Raphson, with a bisection fallback when it doesn't converge. Return null (shown as "—") when XIRR isn't meaningful, e.g. a holding younger than a few days.
+- Per fund and overall: invested, units held, current value, unrealised and realised gain, absolute return %, XIRR.
+- **Invested** is the **FIFO cost of units still held** (oldest units are sold first, as on registrar statements). A redemption's proceeds minus the FIFO cost of the units it sold is its **realised gain**. Absolute return % = unrealised gain ÷ invested.
+- **XIRR:** cash flows are negative for purchases, positive for redemptions, plus current value as a positive flow on the latest NAV date. Use Excel's convention (each year is 365 days, time measured from the first cash flow) so results match spreadsheet `XIRR()`. Solve with Newton-Raphson, with a bisection fallback when it doesn't converge.
+- **When XIRR is shown:** "—" until the cash flows span 30 days; from 30 days to a year it's shown and marked as annualised from a short period; from a year it's shown plainly. The portfolio XIRR runs over all funds' flows together.
 - Calculation logic lives in plain, framework-independent classes so it can be unit tested thoroughly.
 
 ### 1d. Dashboard
