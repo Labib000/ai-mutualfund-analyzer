@@ -46,39 +46,58 @@ class NavLookupTest extends TestCase
         ]);
     }
 
-    public function test_a_purchase_on_a_trading_day_uses_that_days_nav()
+    public function test_a_transaction_on_a_trading_day_uses_that_days_nav()
     {
-        $point = $this->lookup->forPurchase($this->scheme, CarbonImmutable::parse('2026-10-06'));
+        $point = $this->lookup->forTransaction($this->scheme, CarbonImmutable::parse('2026-10-06'));
 
         $this->assertSame('2026-10-06', $point?->date->toDateString());
         $this->assertSame('29.3369', $point->nav);
     }
 
-    public function test_a_purchase_on_a_holiday_uses_the_next_business_days_nav()
+    public function test_a_transaction_on_a_holiday_uses_the_next_business_days_nav()
     {
-        $point = $this->lookup->forPurchase($this->scheme, CarbonImmutable::parse('2026-10-02'));
+        $point = $this->lookup->forTransaction($this->scheme, CarbonImmutable::parse('2026-10-02'));
 
         $this->assertSame('2026-10-05', $point?->date->toDateString());
         $this->assertSame('29.1100', $point->nav);
     }
 
-    public function test_a_purchase_on_a_weekend_uses_the_next_business_days_nav()
+    public function test_a_transaction_on_a_weekend_uses_the_next_business_days_nav()
     {
-        $point = $this->lookup->forPurchase($this->scheme, CarbonImmutable::parse('2026-10-04'));
+        $point = $this->lookup->forTransaction($this->scheme, CarbonImmutable::parse('2026-10-04'));
 
         $this->assertSame('2026-10-05', $point?->date->toDateString());
     }
 
-    public function test_a_purchase_whose_nav_is_not_published_yet_returns_null()
+    public function test_a_transaction_whose_nav_is_not_published_yet_returns_null()
     {
-        $this->assertNull($this->lookup->forPurchase($this->scheme, CarbonImmutable::parse('2026-10-08')));
+        $this->assertNull($this->lookup->forTransaction($this->scheme, CarbonImmutable::parse('2026-10-08')));
     }
 
-    public function test_a_purchase_nav_more_than_seven_days_later_is_not_used()
+    public function test_a_month_end_weekend_nav_is_skipped_for_transactions_but_used_for_valuation()
+    {
+        // Real pattern: Axis Children's Fund published a NAV on Saturday 31 Jan 2026.
+        $provider = new FakeNavProvider([self::CODE => [
+            '2026-01-30' => '29.5649',
+            '2026-01-31' => '29.5655',
+            '2026-02-02' => '29.3753',
+        ]]);
+        $lookup = new NavLookup($provider);
+        $this->scheme->update(['latest_nav_date' => '2026-02-02']);
+
+        $transaction = $lookup->forTransaction($this->scheme, CarbonImmutable::parse('2026-01-31'));
+        $this->assertSame('2026-02-02', $transaction?->date->toDateString());
+        $this->assertSame('29.3753', $transaction->nav);
+
+        $valuation = $lookup->forValuation($this->scheme, CarbonImmutable::parse('2026-02-01'));
+        $this->assertSame('2026-01-31', $valuation?->date->toDateString());
+    }
+
+    public function test_a_nav_more_than_seven_days_later_is_not_used()
     {
         $provider = new FakeNavProvider([self::CODE => ['2026-09-01' => '10.0000', '2026-09-20' => '11.0000']]);
 
-        $this->assertNull((new NavLookup($provider))->forPurchase($this->scheme, CarbonImmutable::parse('2026-09-10')));
+        $this->assertNull((new NavLookup($provider))->forTransaction($this->scheme, CarbonImmutable::parse('2026-09-10')));
     }
 
     public function test_valuation_on_a_weekend_uses_the_previous_nav()
@@ -106,7 +125,7 @@ class NavLookupTest extends TestCase
     public function test_later_lookups_are_served_from_the_cache()
     {
         $this->lookup->forValuation($this->scheme, CarbonImmutable::parse('2026-10-07'));
-        $this->lookup->forPurchase($this->scheme, CarbonImmutable::parse('2026-10-02'));
+        $this->lookup->forTransaction($this->scheme, CarbonImmutable::parse('2026-10-02'));
         $this->lookup->forValuation($this->scheme, CarbonImmutable::parse('2026-10-01'));
 
         $this->assertCount(1, $this->provider->calls);
@@ -121,7 +140,7 @@ class NavLookupTest extends TestCase
         $this->provider->navs[self::CODE]['2026-10-09'] = '29.5000';
         $this->scheme->update(['latest_nav' => '29.5000', 'latest_nav_date' => '2026-10-09']);
 
-        $point = $this->lookup->forPurchase($this->scheme, CarbonImmutable::parse('2026-10-08'));
+        $point = $this->lookup->forTransaction($this->scheme, CarbonImmutable::parse('2026-10-08'));
 
         $this->assertSame('29.4000', $point?->nav);
         $this->assertSame([self::CODE, '2026-10-08'], $this->provider->calls[1]);

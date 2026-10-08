@@ -14,30 +14,34 @@ use Illuminate\Support\Facades\Log;
  */
 class NavLookup
 {
-    /** A purchase NAV further than this from the transaction date is treated as not yet published. */
-    private const MAX_PURCHASE_LAG_DAYS = 7;
+    /** A NAV further than this after the transaction date is treated as not yet published. */
+    private const MAX_NAV_LAG_DAYS = 7;
 
     private const CHUNK_SIZE = 500;
 
     public function __construct(private readonly NavProvider $provider) {}
 
     /**
-     * The NAV units are allotted at: the transaction date's NAV, or the next
+     * The NAV a purchase or redemption is processed at: the transaction date's NAV, or the next
      * business day's when the date is a weekend or holiday. Null when that NAV
      * hasn't been published yet.
      *
+     * Some funds also publish a NAV on a month-end weekend for accounting.
+     * Transactions are never processed at it, so weekend NAVs are skipped here.
+     *
      * @throws NavProviderException when the scheme's history can't be fetched
      */
-    public function forPurchase(Scheme $scheme, DateTimeInterface $date): ?NavPoint
+    public function forTransaction(Scheme $scheme, DateTimeInterface $date): ?NavPoint
     {
         $this->ensureHistory($scheme);
 
         $from = CarbonImmutable::instance($date)->startOfDay();
 
         $row = $scheme->navHistory()
-            ->whereBetween('nav_date', [$from->toDateString(), $from->addDays(self::MAX_PURCHASE_LAG_DAYS)->toDateString()])
+            ->whereBetween('nav_date', [$from->toDateString(), $from->addDays(self::MAX_NAV_LAG_DAYS)->toDateString()])
             ->orderBy('nav_date')
-            ->first();
+            ->get()
+            ->first(fn (NavHistory $row) => $row->nav_date->isWeekday());
 
         return $row === null ? null : new NavPoint($row->nav_date, $row->nav);
     }

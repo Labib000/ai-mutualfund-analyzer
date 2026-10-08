@@ -11,6 +11,12 @@ Schedule::command('nav:import')
     ->timezone('Asia/Kolkata')
     ->withoutOverlapping(30);
 
+// After each NAV import, record SIP installments whose NAV is now published.
+Schedule::command('sips:generate')
+    ->twiceDailyAt(8, 23, 45)
+    ->timezone('Asia/Kolkata')
+    ->withoutOverlapping(30);
+
 /*
  * Shared hosting has no supervisor, so cron runs `schedule:run` every minute
  * and this entry drains the database queue. --max-time stays under a minute

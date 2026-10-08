@@ -4,7 +4,7 @@ Hisaab is a personal mutual fund tracker for Indian investors. Users add the fun
 
 This is a personal portfolio project built to demonstrate senior-level engineering: correct financial calculations, clean data modelling, safe AI integration, and a production-grade payment flow.
 
-> **Revision 2 (2026-10-08).** Updated after the Phase 0 review: Laravel React starter kit instead of Breeze, PHPUnit, MariaDB, next-business-day NAV for purchases, stamp duty in unit calculation, redemptions entered in units, a `payment_events` log, a Pro-expiry rule, Excel-compatible XIRR, a SIP rule for days 29–31, and deferred `portfolio_snapshots`.
+> **Revision 2 (2026-10-08).** Updated after the Phase 0 review: Laravel React starter kit instead of Breeze, PHPUnit, MariaDB, next-business-day NAV for purchases, stamp duty in unit calculation, redemptions entered in units, a `payment_events` log, a Pro-expiry rule, Excel-compatible XIRR, a SIP rule for days 29–31, and deferred `portfolio_snapshots`. Phase 1b added the `holdings` table and the transaction rules below.
 
 ---
 
@@ -77,8 +77,9 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 - **users** — standard Laravel users.
 - **schemes** — `amfi_code` (unique), `isin`, `name`, `amc`, `category`, `is_active`.
 - **nav_history** — `scheme_id`, `nav_date`, `nav` DECIMAL(12,4). Unique on (`scheme_id`, `nav_date`). Store history only for schemes users actually hold.
-- **sips** — `user_id`, `scheme_id`, `amount_paise`, `day_of_month` (1–31), `start_date`, `end_date` (nullable), `is_active`.
-- **transactions** — `user_id`, `scheme_id`, `sip_id` (nullable), `type` (purchase, sip_installment, redemption), `txn_date`, `nav_date` (the date whose NAV was applied), `amount_paise`, `stamp_duty_paise`, `nav` DECIMAL(12,4), `units` DECIMAL(15,3), `units_overridden` (bool).
+- **holdings** — `user_id`, `scheme_id`; unique per user and scheme. A "fund" in the portfolio: transactions and SIPs belong to it, ownership is checked on it, and Free-plan fund limits count it.
+- **sips** — `holding_id`, `amount_paise`, `day_of_month` (1–31), `start_date`, `end_date` (nullable; stopping sets it to today), `generated_until` (date of the last installment recorded, so edits only affect future installments).
+- **transactions** — `holding_id`, `sip_id` (nullable; unique with `txn_date`), `type` (purchase, sip_installment, redemption), `txn_date`, `nav_date` (the date whose NAV was applied), `amount_paise`, `stamp_duty_paise`, `nav` DECIMAL(12,4), `units` DECIMAL(15,3), `units_overridden` (bool).
 - **portfolio_snapshots** — _deferred._ Calculating a handful of funds per request is cheap; add this cache only if profiling shows it's needed.
 - **plans** — `code` (free, pro), `price_paise`, `duration_days`, `max_funds` (nullable = unlimited), `ai_requests_per_month`.
 - **user_plans** — `user_id`, `plan_id`, `starts_at`, `ends_at`, `status`.
@@ -89,11 +90,13 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 
 ### Calculation rules
 
-- **NAV applied to purchases and SIP installments:** the NAV of the transaction date if it's a business day, otherwise the **next** available NAV date. Funds allot units at the next business day's NAV.
+- **NAV applied to purchases, redemptions and SIP installments:** the NAV of the transaction date if it's a business day, otherwise the **next** business day's NAV. Weekend NAVs that some funds publish at month-end are skipped for transactions (they're used only for valuation). A transaction whose NAV isn't published yet is rejected; SIP installments wait for it.
 - **NAV used to value a holding on a date:** the latest NAV on or **before** that date.
 - **Units on purchase:** stamp duty = 0.005% of the amount (rounded to the nearest paisa); units = (amount − stamp duty) ÷ NAV, rounded to 3 decimals. Users may override units to match their statement; overridden rows are flagged.
 - **Redemptions** are entered in **units**, with an "all units" option, since exit load and TDS make the amount received differ from units × NAV. The amount received is optional and is used as the cash flow when given; otherwise units × NAV.
 - **SIP day 29–31:** in shorter months the installment falls on the last day of the month.
+- **Corrections:** transactions are created and deleted, not edited. Deleting a transaction or SIP is blocked if a later redemption would then sell more units than were held.
+- **Time zone:** the app runs on Asia/Kolkata time, so "today" and all date rules follow IST.
 
 ---
 

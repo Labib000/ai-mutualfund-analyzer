@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property SchemeType $scheme_type
  * @property string $category
  * @property SchemePlan|null $plan
- * @property string|null $latest_nav
+ * @property numeric-string|null $latest_nav
  * @property CarbonImmutable|null $latest_nav_date
  * @property bool $is_active
  * @property CarbonImmutable|null $history_synced_at

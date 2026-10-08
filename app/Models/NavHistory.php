@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $scheme_id
  * @property CarbonImmutable $nav_date
- * @property string $nav
+ * @property numeric-string $nav
  */
 #[Table('nav_history', timestamps: false)]
 #[Fillable(['scheme_id', 'nav_date', 'nav'])]
