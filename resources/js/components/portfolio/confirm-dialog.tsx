@@ -1,3 +1,7 @@
+import {
+    faCircleQuestion,
+    faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
 import { Form } from '@inertiajs/react';
 import type { RouteFormDefinition } from '@/wayfinder';
 import { useState } from 'react';
@@ -9,6 +13,7 @@ import {
     DialogContent,
     DialogDescription,
     DialogFooter,
+    DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
@@ -38,8 +43,16 @@ export default function ConfirmDialog({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
             <DialogContent>
-                <DialogTitle>{title}</DialogTitle>
-                <DialogDescription>{description}</DialogDescription>
+                <DialogHeader
+                    icon={
+                        destructive ? faTriangleExclamation : faCircleQuestion
+                    }
+                    tone={destructive ? 'destructive' : 'default'}
+                    className="pb-5"
+                >
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>{description}</DialogDescription>
+                </DialogHeader>
 
                 <Form
                     {...form}
@@ -47,7 +60,7 @@ export default function ConfirmDialog({
                     onFinish={() => setOpen(false)}
                 >
                     {({ processing }) => (
-                        <DialogFooter className="gap-2">
+                        <DialogFooter>
                             <DialogClose asChild>
                                 <Button type="button" variant="secondary">
                                     Cancel

@@ -1,4 +1,5 @@
-import { Sparkles } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { cn } from '@/lib/utils';
 
 export const AI_DISCLAIMER =
@@ -40,7 +41,11 @@ export default function AiAnswer({
 export function AiDisclaimer() {
     return (
         <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-            <Sparkles className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+            <FontAwesomeIcon
+                icon={faWandMagicSparkles}
+                className="mt-0.5 size-3 shrink-0"
+                aria-hidden="true"
+            />
             <span>{AI_DISCLAIMER}</span>
         </p>
     );

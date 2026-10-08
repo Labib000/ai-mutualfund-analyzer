@@ -1,4 +1,9 @@
-import { RefreshCw, Sparkles } from 'lucide-react';
+import {
+    faRotate,
+    faWandMagicSparkles,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { AnimatePresence, motion } from 'motion/react';
 import AiAnswer from '@/components/ai/ai-answer';
 import RemainingNote from '@/components/ai/remaining-note';
 import { useAiRequest } from '@/components/ai/use-ai-request';
@@ -14,15 +19,33 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { summary } from '@/routes/ai';
 
+const fade = {
+    initial: { opacity: 0, y: 6 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -6 },
+    transition: { duration: 0.25 },
+};
+
 export default function AiSummaryCard({ remaining }: { remaining: number }) {
     const ai = useAiRequest(remaining);
+    const state = ai.loading
+        ? 'loading'
+        : ai.error
+          ? 'error'
+          : ai.result
+            ? 'result'
+            : null;
 
     return (
-        <Card>
-            <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1.5">
-                    <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="size-4" aria-hidden="true" />
+        <Card className="gap-0 overflow-hidden">
+            <CardHeader className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-between sm:text-left">
+                <div className="min-w-0 space-y-1">
+                    <CardTitle className="flex items-center justify-center gap-2 sm:justify-start">
+                        <FontAwesomeIcon
+                            icon={faWandMagicSparkles}
+                            className="size-3.5 text-primary"
+                            aria-hidden="true"
+                        />
                         AI summary
                     </CardTitle>
                     <CardDescription>
@@ -36,36 +59,57 @@ export default function AiSummaryCard({ remaining }: { remaining: number }) {
                         disabled={ai.loading}
                         onClick={() => ai.run(summary.url(), { fresh: true })}
                     >
-                        <RefreshCw /> Regenerate
+                        <FontAwesomeIcon icon={faRotate} spin={ai.loading} />{' '}
+                        Regenerate
                     </Button>
                 ) : (
                     <Button
+                        variant="outline"
                         disabled={ai.loading}
                         onClick={() => ai.run(summary.url())}
+                        className="w-full sm:w-auto"
                     >
-                        <Sparkles /> Summarise my portfolio
+                        <FontAwesomeIcon icon={faWandMagicSparkles} /> Summarise
+                        my portfolio
                     </Button>
                 )}
             </CardHeader>
 
-            {(ai.loading || ai.result || ai.error) && (
-                <CardContent className="space-y-3" aria-live="polite">
-                    {ai.loading ? (
-                        <div className="space-y-2" aria-label="Writing summary">
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-4 w-11/12" />
-                            <Skeleton className="h-4 w-4/5" />
-                        </div>
-                    ) : ai.error ? (
-                        <Alert variant="destructive">
-                            <AlertDescription>{ai.error}</AlertDescription>
-                        </Alert>
-                    ) : (
-                        ai.result && <AiAnswer text={ai.result.text} />
+            <motion.div
+                layout
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                aria-live="polite"
+            >
+                <AnimatePresence mode="wait" initial={false}>
+                    {state && (
+                        <motion.div key={state} {...fade}>
+                            <CardContent className="space-y-3 pt-5">
+                                {state === 'loading' ? (
+                                    <div
+                                        className="space-y-2"
+                                        aria-label="Writing summary"
+                                    >
+                                        <Skeleton className="h-4 w-full" />
+                                        <Skeleton className="h-4 w-11/12" />
+                                        <Skeleton className="h-4 w-4/5" />
+                                    </div>
+                                ) : state === 'error' ? (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>
+                                            {ai.error}
+                                        </AlertDescription>
+                                    </Alert>
+                                ) : (
+                                    ai.result && (
+                                        <AiAnswer text={ai.result.text} />
+                                    )
+                                )}
+                                <RemainingNote remaining={ai.remaining} />
+                            </CardContent>
+                        </motion.div>
                     )}
-                    <RemainingNote remaining={ai.remaining} />
-                </CardContent>
-            )}
+                </AnimatePresence>
+            </motion.div>
         </Card>
     );
 }

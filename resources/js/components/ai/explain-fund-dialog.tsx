@@ -1,4 +1,5 @@
-import { Sparkles } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { useState } from 'react';
 import AiAnswer from '@/components/ai/ai-answer';
 import RemainingNote from '@/components/ai/remaining-note';
@@ -7,8 +8,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
+    DialogBody,
     DialogContent,
     DialogDescription,
+    DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
@@ -40,16 +43,19 @@ export default function ExplainFundDialog({
         >
             <DialogTrigger asChild>
                 <Button variant="outline">
-                    <Sparkles /> Explain this fund
+                    <FontAwesomeIcon icon={faWandMagicSparkles} /> Explain this
+                    fund
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[85vh] overflow-y-auto">
-                <DialogTitle className="pr-8">{schemeName}</DialogTitle>
-                <DialogDescription>
-                    What this kind of fund is and how it works.
-                </DialogDescription>
+            <DialogContent className="sm:max-w-xl">
+                <DialogHeader icon={faWandMagicSparkles}>
+                    <DialogTitle>{schemeName}</DialogTitle>
+                    <DialogDescription>
+                        What this kind of fund is and how it works.
+                    </DialogDescription>
+                </DialogHeader>
 
-                <div aria-live="polite" className="space-y-3">
+                <DialogBody aria-live="polite" className="space-y-3">
                     {ai.loading ? (
                         <div
                             className="space-y-2"
@@ -77,7 +83,7 @@ export default function ExplainFundDialog({
                         ai.result && <AiAnswer text={ai.result.text} />
                     )}
                     <RemainingNote remaining={ai.remaining} />
-                </div>
+                </DialogBody>
             </DialogContent>
         </Dialog>
     );

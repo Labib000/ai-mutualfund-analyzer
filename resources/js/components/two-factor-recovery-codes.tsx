@@ -1,5 +1,11 @@
 import { Form } from '@inertiajs/react';
-import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faEye,
+    faEyeSlash,
+    faLock,
+    faRotate,
+} from '@fortawesome/free-solid-svg-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
 import { Button } from '@/components/ui/button';
@@ -50,13 +56,17 @@ export default function TwoFactorRecoveryCodes({
         }
     }, [recoveryCodesList.length, fetchRecoveryCodes]);
 
-    const RecoveryCodeIconComponent = codesAreVisible ? EyeOff : Eye;
+    const recoveryCodeIcon = codesAreVisible ? faEyeSlash : faEye;
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex gap-3">
-                    <LockKeyhole className="size-4" aria-hidden="true" />
+                    <FontAwesomeIcon
+                        icon={faLock}
+                        className="size-4"
+                        aria-hidden="true"
+                    />
                     2FA recovery codes
                 </CardTitle>
                 <CardDescription>
@@ -72,7 +82,8 @@ export default function TwoFactorRecoveryCodes({
                         aria-expanded={codesAreVisible}
                         aria-controls="recovery-codes-section"
                     >
-                        <RecoveryCodeIconComponent
+                        <FontAwesomeIcon
+                            icon={recoveryCodeIcon}
                             className="size-4"
                             aria-hidden="true"
                         />
@@ -92,7 +103,8 @@ export default function TwoFactorRecoveryCodes({
                                     disabled={processing}
                                     aria-describedby="regenerate-warning"
                                 >
-                                    <RefreshCw /> Regenerate codes
+                                    <FontAwesomeIcon icon={faRotate} />{' '}
+                                    Regenerate codes
                                 </Button>
                             )}
                         </Form>

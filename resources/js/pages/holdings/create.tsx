@@ -1,5 +1,6 @@
 import { Form, Head, router } from '@inertiajs/react';
-import { Check, Search } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useRef, useState } from 'react';
 import HoldingController from '@/actions/App/Http/Controllers/Portfolio/HoldingController';
 import Heading from '@/components/heading';
@@ -60,7 +61,10 @@ export default function HoldingsCreate({
                 />
 
                 <div className="relative">
-                    <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <FontAwesomeIcon
+                        icon={faMagnifyingGlass}
+                        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                    />
                     <Input
                         autoFocus
                         value={search}
@@ -119,7 +123,8 @@ export default function HoldingsCreate({
 
                                 {scheme.is_held ? (
                                     <Badge variant="secondary">
-                                        <Check /> In portfolio
+                                        <FontAwesomeIcon icon={faCheck} /> In
+                                        portfolio
                                     </Badge>
                                 ) : (
                                     <Form {...HoldingController.store.form()}>

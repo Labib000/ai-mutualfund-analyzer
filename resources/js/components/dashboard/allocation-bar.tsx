@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import { ASSET_CLASS_COLORS } from '@/components/dashboard/asset-class-colors';
 import {
     Tooltip,
@@ -19,21 +20,27 @@ export default function AllocationBar({
     return (
         <div className="space-y-4">
             <div
-                className="flex h-4 w-full gap-0.5 overflow-hidden rounded-sm"
+                className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted"
                 role="img"
                 aria-label={classes
                     .map((c) => `${c.label} ${formatPercent(c.pct)}`)
                     .join(', ')}
             >
-                {classes.map((assetClass) => (
+                {classes.map((assetClass, index) => (
                     <Tooltip key={assetClass.key}>
                         <TooltipTrigger asChild>
-                            <div
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${assetClass.pct}%` }}
+                                transition={{
+                                    duration: 0.45,
+                                    delay: 0.1 + index * 0.05,
+                                    ease: [0.22, 1, 0.36, 1],
+                                }}
                                 tabIndex={0}
                                 aria-label={`${assetClass.label} ${formatPercent(assetClass.pct)}`}
-                                className="h-full min-w-1 outline-offset-2 first:rounded-l-sm last:rounded-r-sm"
+                                className="h-full min-w-1 outline-offset-2 first:rounded-l-full last:rounded-r-full"
                                 style={{
-                                    width: `${assetClass.pct}%`,
                                     backgroundColor:
                                         ASSET_CLASS_COLORS[assetClass.key],
                                 }}
@@ -67,7 +74,7 @@ export default function AllocationBar({
                         <span className="ml-auto font-medium tabular-nums">
                             {formatPercent(assetClass.pct)}
                         </span>
-                        <span className="w-28 text-right text-muted-foreground tabular-nums">
+                        <span className="w-24 shrink-0 text-right text-muted-foreground tabular-nums">
                             {formatPaise(assetClass.value_paise)}
                         </span>
                     </li>

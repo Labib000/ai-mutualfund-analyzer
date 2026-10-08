@@ -11,6 +11,9 @@
         "types:check": "tsc --noEmit"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^7.3.1",
+        "@fortawesome/free-solid-svg-icons": "^7.3.1",
+        "@fortawesome/react-fontawesome": "^3.5.0",
         "@inertiajs/react": "^3.0.0",
         "@inertiajs/vite": "^3.0.0",
         "@laravel/passkeys": "^0.2.0",
@@ -37,6 +40,7 @@
         "input-otp": "^1.4.2",
         "laravel-vite-plugin": "^3.0.0",
         "lucide-react": "^0.475.0",
+        "motion": "^14.0.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-is": "^19.3.0",

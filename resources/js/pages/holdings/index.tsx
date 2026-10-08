@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { Plus, WalletCards } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faWallet } from '@fortawesome/free-solid-svg-icons';
 import Heading from '@/components/heading';
 import Gain from '@/components/portfolio/gain';
 import HoldingsTable from '@/components/portfolio/holdings-table';
@@ -34,7 +35,7 @@ export default function HoldingsIndex({
                     {holdings.length > 0 && (
                         <Button asChild>
                             <Link href={create()}>
-                                <Plus /> Add fund
+                                <FontAwesomeIcon icon={faPlus} /> Add fund
                             </Link>
                         </Button>
                     )}
@@ -42,7 +43,10 @@ export default function HoldingsIndex({
 
                 {holdings.length === 0 ? (
                     <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed p-12 text-center">
-                        <WalletCards className="size-10 text-muted-foreground" />
+                        <FontAwesomeIcon
+                            icon={faWallet}
+                            className="size-10 text-muted-foreground"
+                        />
                         <div className="space-y-1">
                             <p className="font-medium">No funds yet</p>
                             <p className="text-sm text-muted-foreground">
@@ -52,7 +56,8 @@ export default function HoldingsIndex({
                         </div>
                         <Button asChild>
                             <Link href={create()}>
-                                <Plus /> Add your first fund
+                                <FontAwesomeIcon icon={faPlus} /> Add your first
+                                fund
                             </Link>
                         </Button>
                     </div>

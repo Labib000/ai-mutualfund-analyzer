@@ -1,5 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
-import { Pencil, Repeat, Trash2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen, faRepeat, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import HoldingController from '@/actions/App/Http/Controllers/Portfolio/HoldingController';
 import SipController from '@/actions/App/Http/Controllers/Portfolio/SipController';
 import TransactionController from '@/actions/App/Http/Controllers/Portfolio/TransactionController';
@@ -101,7 +102,7 @@ export default function HoldingShow({
                             today={today}
                             trigger={
                                 <Button variant="outline">
-                                    <Repeat /> Add SIP
+                                    <FontAwesomeIcon icon={faRepeat} /> Add SIP
                                 </Button>
                             }
                         />
@@ -232,7 +233,8 @@ export default function HoldingShow({
                                 variant="ghost"
                                 className="text-destructive"
                             >
-                                <Trash2 /> Remove fund
+                                <FontAwesomeIcon icon={faTrashCan} /> Remove
+                                fund
                             </Button>
                         }
                     />
@@ -282,7 +284,7 @@ function SipRow({
                             size="icon"
                             aria-label="Edit SIP"
                         >
-                            <Pencil />
+                            <FontAwesomeIcon icon={faPen} />
                         </Button>
                     }
                 />
@@ -311,7 +313,7 @@ function SipRow({
                             size="icon"
                             aria-label="Delete SIP"
                         >
-                            <Trash2 />
+                            <FontAwesomeIcon icon={faTrashCan} />
                         </Button>
                     }
                 />
@@ -389,7 +391,7 @@ function TransactionRow({
                             size="icon"
                             aria-label="Delete transaction"
                         >
-                            <Trash2 />
+                            <FontAwesomeIcon icon={faTrashCan} />
                         </Button>
                     }
                 />

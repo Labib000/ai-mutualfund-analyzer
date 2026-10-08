@@ -1,5 +1,6 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGear, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -40,7 +41,7 @@ export function UserMenuContent({ user }: Props) {
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
+                        <FontAwesomeIcon icon={faGear} className="mr-2" />
                         Settings
                     </Link>
                 </DropdownMenuItem>
@@ -54,7 +55,10 @@ export function UserMenuContent({ user }: Props) {
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
-                    <LogOut className="mr-2" />
+                    <FontAwesomeIcon
+                        icon={faRightFromBracket}
+                        className="mr-2"
+                    />
                     Log out
                 </Link>
             </DropdownMenuItem>

@@ -1,4 +1,5 @@
-import { Eye, EyeOff } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import type { ComponentProps, Ref } from 'react';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
@@ -27,9 +28,9 @@ export default function PasswordInput({
                 tabIndex={-1}
             >
                 {showPassword ? (
-                    <EyeOff className="size-4" />
+                    <FontAwesomeIcon icon={faEyeSlash} className="size-4" />
                 ) : (
-                    <Eye className="size-4" />
+                    <FontAwesomeIcon icon={faEye} className="size-4" />
                 )}
             </button>
         </div>

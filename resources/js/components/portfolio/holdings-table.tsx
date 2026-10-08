@@ -111,7 +111,7 @@ function HoldingRow({
     const { performance } = holding;
 
     return (
-        <tr className="border-t">
+        <tr className="border-t transition-colors hover:bg-muted/40">
             <td className="px-4 py-3">
                 <Link
                     href={show(holding.id)}

@@ -1,10 +1,16 @@
+import '@fortawesome/fontawesome-svg-core/styles.css';
+import { config as fontAwesomeConfig } from '@fortawesome/fontawesome-svg-core';
 import { createInertiaApp } from '@inertiajs/react';
+import { MotionConfig } from 'motion/react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+
+// Font Awesome's CSS is imported above, so it shouldn't inject it again at runtime.
+fontAwesomeConfig.autoAddCss = false;
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -25,10 +31,12 @@ void createInertiaApp({
     strictMode: true,
     withApp(app) {
         return (
-            <TooltipProvider delayDuration={0}>
-                {app}
-                <Toaster />
-            </TooltipProvider>
+            <MotionConfig reducedMotion="user">
+                <TooltipProvider delayDuration={0}>
+                    {app}
+                    <Toaster />
+                </TooltipProvider>
+            </MotionConfig>
         );
     },
     progress: {

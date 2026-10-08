@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
@@ -56,7 +57,10 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                             >
                                 <Link href={item.href}>
                                     {item.icon && (
-                                        <item.icon className="h-4 w-4" />
+                                        <FontAwesomeIcon
+                                            icon={item.icon}
+                                            className="h-4 w-4"
+                                        />
                                     )}
                                     {item.title}
                                 </Link>

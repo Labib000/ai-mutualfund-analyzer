@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useReducedMotion } from 'motion/react';
+import { useId, useMemo, useState } from 'react';
 import {
     Area,
     CartesianGrid,
@@ -36,6 +37,8 @@ function daysBetween(from: string, to: string): number {
  */
 export default function ValueChart({ history }: { history: HistoryPoint[] }) {
     const [range, setRange] = useState<RangeKey>('ALL');
+    const animate = !useReducedMotion();
+    const gradientId = `value-fill-${useId().replace(/:/g, '')}`;
 
     const first = history[0];
     const last = history[history.length - 1];
@@ -67,8 +70,8 @@ export default function ValueChart({ history }: { history: HistoryPoint[] }) {
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-between">
+                <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm sm:justify-start">
                     <LegendItem
                         label="Current value"
                         value={formatPaise(last.value_paise)}
@@ -86,13 +89,33 @@ export default function ValueChart({ history }: { history: HistoryPoint[] }) {
                 />
             </div>
 
-            <div className="h-72 w-full">
+            <div className="h-56 w-full sm:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart
                         data={points}
                         margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
                         accessibilityLayer
                     >
+                        <defs>
+                            <linearGradient
+                                id={gradientId}
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="0%"
+                                    stopColor="var(--primary)"
+                                    stopOpacity={0.18}
+                                />
+                                <stop
+                                    offset="100%"
+                                    stopColor="var(--primary)"
+                                    stopOpacity={0}
+                                />
+                            </linearGradient>
+                        </defs>
                         <CartesianGrid
                             vertical={false}
                             stroke="var(--border)"
@@ -137,17 +160,18 @@ export default function ValueChart({ history }: { history: HistoryPoint[] }) {
                             dataKey="value_paise"
                             name="Current value"
                             type="monotone"
-                            stroke="var(--chart-1)"
+                            stroke="var(--primary)"
                             strokeWidth={2}
-                            fill="var(--chart-1)"
-                            fillOpacity={0.1}
+                            fill={`url(#${gradientId})`}
                             dot={false}
                             activeDot={{
                                 r: 4,
                                 strokeWidth: 2,
                                 stroke: 'var(--background)',
                             }}
-                            isAnimationActive={false}
+                            isAnimationActive={animate}
+                            animationDuration={500}
+                            animationEasing="ease-out"
                         />
                         <Line
                             dataKey="invested_paise"
@@ -162,7 +186,9 @@ export default function ValueChart({ history }: { history: HistoryPoint[] }) {
                                 strokeWidth: 2,
                                 stroke: 'var(--background)',
                             }}
-                            isAnimationActive={false}
+                            isAnimationActive={animate}
+                            animationDuration={500}
+                            animationEasing="ease-out"
                         />
                     </ComposedChart>
                 </ResponsiveContainer>
@@ -226,7 +252,7 @@ function LineKey({ dashed = false }: { dashed?: boolean }) {
                 x2="16"
                 y2="4"
                 strokeWidth="2"
-                stroke={dashed ? 'var(--muted-foreground)' : 'var(--chart-1)'}
+                stroke={dashed ? 'var(--muted-foreground)' : 'var(--primary)'}
                 strokeDasharray={dashed ? '4 3' : undefined}
             />
         </svg>

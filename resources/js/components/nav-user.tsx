@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
-import { ChevronsUpDown } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSort } from '@fortawesome/free-solid-svg-icons';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,11 +32,18 @@ export function NavUser() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
+                            className="group text-sidebar-foreground hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent"
                             data-test="sidebar-menu-button"
                         >
-                            <UserInfo user={auth.user} />
-                            <ChevronsUpDown className="ml-auto size-4" />
+                            <UserInfo
+                                user={auth.user}
+                                showEmail
+                                tone="sidebar"
+                            />
+                            <FontAwesomeIcon
+                                icon={faSort}
+                                className="ml-auto size-3.5 text-sidebar-foreground/50"
+                            />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent

@@ -1,5 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
-import { Plus, SendHorizontal, Sparkles } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faPaperPlane,
+    faPlus,
+    faWandMagicSparkles,
+} from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import AiAnswer, { AiDisclaimer } from '@/components/ai/ai-answer';
@@ -85,14 +90,17 @@ export default function Ask({
 
                 {!hasFunds ? (
                     <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed p-10 text-center">
-                        <Sparkles className="size-8 text-muted-foreground" />
+                        <FontAwesomeIcon
+                            icon={faWandMagicSparkles}
+                            className="size-8 text-muted-foreground"
+                        />
                         <p className="text-sm text-muted-foreground">
                             Add a fund and some transactions first, then ask
                             about them here.
                         </p>
                         <Button asChild>
                             <Link href={create()}>
-                                <Plus /> Add a fund
+                                <FontAwesomeIcon icon={faPlus} /> Add a fund
                             </Link>
                         </Button>
                     </div>
@@ -196,7 +204,7 @@ export default function Ask({
                                     }
                                     aria-label="Send"
                                 >
-                                    <SendHorizontal />
+                                    <FontAwesomeIcon icon={faPaperPlane} />
                                 </Button>
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-2">
