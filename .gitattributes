@@ -6,6 +6,9 @@
 *.md diff=markdown
 *.php diff=php
 
+# Keep upstream data files byte-for-byte (AMFI files use CRLF line endings)
+tests/Fixtures/** -text
+
 CHANGELOG.md export-ignore
 README.md export-ignore
 .github/workflows/browser-tests.yml export-ignore

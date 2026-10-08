@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Nav\MfApiNavProvider;
+use App\Nav\NavProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use InvalidArgumentException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +18,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(NavProvider::class, fn (): NavProvider => match (config('services.nav_history.provider')) {
+            'mfapi' => new MfApiNavProvider(
+                baseUrl: config()->string('services.mfapi.base_url'),
+                timeoutSeconds: config()->integer('services.mfapi.timeout'),
+            ),
+            default => throw new InvalidArgumentException('Unknown NAV_HISTORY_PROVIDER ['.config()->string('services.nav_history.provider').'].'),
+        });
     }
 
     /**

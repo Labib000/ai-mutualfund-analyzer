@@ -28,6 +28,20 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'amfi' => [
+        'nav_url' => env('AMFI_NAV_URL', 'https://www.amfiindia.com/spages/NAVAll.txt'),
+        'timeout' => (int) env('AMFI_TIMEOUT_SECONDS', 60),
+    ],
+
+    'nav_history' => [
+        'provider' => env('NAV_HISTORY_PROVIDER', 'mfapi'),
+    ],
+
+    'mfapi' => [
+        'base_url' => env('MFAPI_BASE_URL', 'https://api.mfapi.in'),
+        'timeout' => (int) env('MFAPI_TIMEOUT_SECONDS', 15),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
