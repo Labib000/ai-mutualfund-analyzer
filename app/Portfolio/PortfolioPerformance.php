@@ -70,7 +70,7 @@ class PortfolioPerformance
         // One entry per user, replaced whenever its version changes, so stale
         // series never pile up in the cache table.
         $key = "portfolio-history:{$first->user_id}";
-        $version = $this->historyVersion($holdings);
+        $version = $this->version($holdings);
         $cached = Cache::get($key);
 
         if (is_array($cached) && ($cached['version'] ?? null) === $version) {
@@ -88,7 +88,7 @@ class PortfolioPerformance
      *
      * @param  Collection<int, Holding>  $holdings
      */
-    private function historyVersion(Collection $holdings): string
+    public function version(Collection $holdings): string
     {
         return md5((string) json_encode($holdings->sortBy('id')->map(fn (Holding $holding) => [
             $holding->id,

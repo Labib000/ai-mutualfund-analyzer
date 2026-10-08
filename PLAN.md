@@ -162,6 +162,17 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 
 **Done when:** all three features work, usage is recorded, failures are handled gracefully, and tests use the fake provider.
 
+**As built:**
+
+- **Provider:** Groq's free tier (`openai/gpt-oss-120b`, low reasoning effort) through `GroqProvider`, using Laravel's HTTP client and no SDK. Claude Opus 5.5 is the planned upgrade: add a `ClaudeProvider` and set `AI_PROVIDER`.
+- **Free-tier limits:** about 8K tokens a minute across the app, roughly two requests a minute. A busy provider shows a friendly "try again in a minute".
+- **Limits per user:** 20 successful AI requests per IST calendar month (`AI_MONTHLY_REQUESTS_PER_USER`) and 5 per minute. Failed calls and cached answers don't count.
+- **Caching:**
+    - the summary is cached per user until the portfolio, its SIPs or the model change (or for 24 hours);
+    - fund explanations are cached per scheme for 30 days and shared by all users.
+- **Chat history** lives only in the browser; the last 6 turns go with each question.
+- **Rendering:** answers are plain text, shown with a fixed disclaimer; nothing is rendered as HTML.
+
 ---
 
 ## Phase 3 — Razorpay Pro plan
@@ -207,5 +218,5 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 2. Pro plan pricing and duration.
 3. Free-tier limits (number of funds, AI requests per month).
 4. ~~Unit override~~ — allowed, flagged with `units_overridden`.
-5. Which AI provider and model to use, and the monthly budget cap.
+5. ~~AI provider and budget~~: Groq free tier for now; Claude Opus 5.5 once there's a budget.
 6. Hostinger's PHP and MariaDB versions (pin CI to match).

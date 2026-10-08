@@ -3,6 +3,7 @@ import { Pencil, Repeat, Trash2 } from 'lucide-react';
 import HoldingController from '@/actions/App/Http/Controllers/Portfolio/HoldingController';
 import SipController from '@/actions/App/Http/Controllers/Portfolio/SipController';
 import TransactionController from '@/actions/App/Http/Controllers/Portfolio/TransactionController';
+import ExplainFundDialog from '@/components/ai/explain-fund-dialog';
 import AlertError from '@/components/alert-error';
 import ConfirmDialog from '@/components/portfolio/confirm-dialog';
 import Gain from '@/components/portfolio/gain';
@@ -47,11 +48,13 @@ export default function HoldingShow({
     transactions,
     sips,
     today,
+    ai_remaining: aiRemaining,
 }: {
     holding: HoldingSummary;
     transactions: PortfolioTransaction[];
     sips: PortfolioSip[];
     today: string;
+    ai_remaining: number;
 }) {
     const { errors } = usePage().props;
     const actionErrors = [errors.transaction, errors.sip].flatMap((error) =>
@@ -82,6 +85,11 @@ export default function HoldingShow({
                     </div>
 
                     <div className="flex flex-wrap gap-2">
+                        <ExplainFundDialog
+                            holdingId={holding.id}
+                            schemeName={holding.scheme.name}
+                            remaining={aiRemaining}
+                        />
                         <PurchaseDialog holdingId={holding.id} today={today} />
                         <RedemptionDialog
                             holdingId={holding.id}

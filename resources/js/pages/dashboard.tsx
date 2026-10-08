@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, Plus, WalletCards } from 'lucide-react';
+import AiSummaryCard from '@/components/ai/ai-summary-card';
 import AllocationBar from '@/components/dashboard/allocation-bar';
 import CategoryList from '@/components/dashboard/category-list';
 import ValueChart from '@/components/dashboard/value-chart';
@@ -28,12 +29,14 @@ import type {
 
 export default function Dashboard({
     fund_count: fundCount,
+    ai_remaining: aiRemaining,
     summary,
     history,
     allocation,
     top_holdings: topHoldings,
 }: {
     fund_count: number;
+    ai_remaining: number;
     summary: Performance;
     history: HistoryPoint[];
     allocation: Allocation;
@@ -77,6 +80,8 @@ export default function Dashboard({
                                 <XirrValue performance={summary} />
                             </StatTile>
                         </div>
+
+                        <AiSummaryCard remaining={aiRemaining} />
 
                         {history.length > 1 && (
                             <Card>

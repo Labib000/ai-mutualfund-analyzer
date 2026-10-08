@@ -61,4 +61,17 @@ class MoneyTest extends TestCase
 
         Money::rupeesToPaise('999999999999999999999');
     }
+
+    public function test_format_inr_uses_indian_grouping()
+    {
+        $this->assertSame('₹0.05', Money::formatInr(5));
+        $this->assertSame('₹999.00', Money::formatInr(99900));
+        $this->assertSame('₹1,000.00', Money::formatInr(100000));
+        $this->assertSame('₹12,345.67', Money::formatInr(1234567));
+        $this->assertSame('₹1,00,000.00', Money::formatInr(10000000));
+        $this->assertSame('₹12,34,56,789.00', Money::formatInr(123456789_00));
+        $this->assertSame('−₹116.08', Money::formatInr(-11608));
+        $this->assertSame('+₹682.04', Money::formatInr(68204, signed: true));
+        $this->assertSame('₹0.00', Money::formatInr(0, signed: true));
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Portfolio;
 
+use App\Ai\AiQuota;
 use App\Http\Controllers\Controller;
 use App\Http\Presenters\SchemePresenter;
 use App\Models\Holding;
@@ -83,7 +84,7 @@ class HoldingController extends Controller
     /**
      * Show one fund with its transactions and SIPs.
      */
-    public function show(Holding $holding): Response
+    public function show(Request $request, Holding $holding, AiQuota $aiQuota): Response
     {
         $today = CarbonImmutable::today();
         $performance = $this->performance->forHolding($holding);
@@ -127,6 +128,7 @@ class HoldingController extends Controller
             'transactions' => $transactions,
             'sips' => $sips,
             'today' => $today->toDateString(),
+            'ai_remaining' => $aiQuota->remaining($request->user()),
         ]);
     }
 

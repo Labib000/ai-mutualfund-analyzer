@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Ai\AiQuota;
 use App\Http\Presenters\SchemePresenter;
 use App\Models\Holding;
 use App\Portfolio\Allocation;
@@ -17,6 +18,7 @@ class DashboardController extends Controller
     public function __construct(
         private readonly PortfolioPerformance $performance,
         private readonly Allocation $allocation,
+        private readonly AiQuota $aiQuota,
     ) {}
 
     /**
@@ -37,6 +39,7 @@ class DashboardController extends Controller
 
         return Inertia::render('dashboard', [
             'fund_count' => $holdings->count(),
+            'ai_remaining' => $this->aiQuota->remaining($request->user()),
             'summary' => $total->toArray(),
             'history' => $this->performance->history($holdings, $inputs),
             'allocation' => $this->allocation->of(array_values($holdings->map(fn (Holding $holding) => [

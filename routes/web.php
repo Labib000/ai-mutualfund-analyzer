@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Portfolio\HoldingController;
 use App\Http\Controllers\Portfolio\SipController;
@@ -10,6 +11,12 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('ask', [AiController::class, 'page'])->name('ask');
+    Route::middleware('throttle:ai')->prefix('ai')->name('ai.')->group(function () {
+        Route::post('summary', [AiController::class, 'summary'])->name('summary');
+        Route::post('ask', [AiController::class, 'ask'])->name('ask');
+    });
 
     Route::get('holdings', [HoldingController::class, 'index'])->name('holdings.index');
     Route::get('holdings/create', [HoldingController::class, 'create'])->name('holdings.create');
@@ -29,6 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('sips/{sip}', [SipController::class, 'update'])->name('sips.update');
         Route::post('sips/{sip}/stop', [SipController::class, 'stop'])->name('sips.stop');
         Route::delete('sips/{sip}', [SipController::class, 'destroy'])->name('sips.destroy');
+
+        Route::post('explain', [AiController::class, 'explain'])->middleware('throttle:ai')->name('explain');
     });
 });
 

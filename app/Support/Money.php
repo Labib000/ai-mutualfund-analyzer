@@ -32,6 +32,24 @@ final class Money
     }
 
     /**
+     * Format paise as rupees with Indian digit grouping, e.g. 1234567 → "₹12,345.67",
+     * -500 → "−₹5.00". Integer arithmetic only.
+     */
+    public static function formatInr(int $paise, bool $signed = false): string
+    {
+        $sign = $paise < 0 ? '−' : ($signed && $paise > 0 ? '+' : '');
+        $absolute = abs($paise);
+        $rupees = (string) intdiv($absolute, 100);
+        $fraction = str_pad((string) ($absolute % 100), 2, '0', STR_PAD_LEFT);
+
+        $lastThree = substr($rupees, -3);
+        $rest = substr($rupees, 0, -3);
+        $grouped = $rest === '' ? $lastThree : preg_replace('/\B(?=(\d{2})+(?!\d))/', ',', $rest).','.$lastThree;
+
+        return "{$sign}₹{$grouped}.{$fraction}";
+    }
+
+    /**
      * Whether the string is an amount rupeesToPaise() accepts.
      */
     public static function isRupeeAmount(string $rupees): bool

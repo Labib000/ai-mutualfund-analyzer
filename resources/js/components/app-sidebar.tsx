@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, WalletCards } from 'lucide-react';
+import { LayoutGrid, MessageCircleQuestion, WalletCards } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -12,7 +12,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { ask, dashboard } from '@/routes';
 import { index as holdings } from '@/routes/holdings';
 import type { NavItem } from '@/types';
 
@@ -26,6 +26,11 @@ const mainNavItems: NavItem[] = [
         title: 'Portfolio',
         href: holdings(),
         icon: WalletCards,
+    },
+    {
+        title: 'Ask',
+        href: ask(),
+        icon: MessageCircleQuestion,
     },
 ];
 
