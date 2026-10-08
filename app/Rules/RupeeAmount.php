@@ -19,13 +19,13 @@ class RupeeAmount implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_string($value) && ! is_int($value)) {
-            $fail('The :attribute must be an amount in rupees.');
+            $fail('Enter the :attribute in rupees.');
 
             return;
         }
 
         if (! Money::isRupeeAmount((string) $value)) {
-            $fail('The :attribute must be an amount in rupees with at most 2 decimals.');
+            $fail('Enter the :attribute in rupees, with at most 2 decimals (for example 5000 or 499.50).');
 
             return;
         }

@@ -34,11 +34,11 @@ final class Xirr
             return null;
         }
 
-        $start = min(array_map(fn (CashFlow $flow) => $flow->date->startOfDay(), $flows));
+        $start = min(array_map(fn (CashFlow $flow) => $flow->epochDay, $flows));
 
         $points = array_map(fn (CashFlow $flow) => [
             $flow->amountPaise / 100,
-            $start->diffInDays($flow->date->startOfDay()) / self::DAYS_PER_YEAR,
+            ($flow->epochDay - $start) / self::DAYS_PER_YEAR,
         ], $flows);
 
         return $this->newton($points) ?? $this->bisection($points);

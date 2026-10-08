@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portfolio;
 
 use App\Http\Controllers\Controller;
+use App\Http\Presenters\SchemePresenter;
 use App\Models\Holding;
 use App\Models\Scheme;
 use App\Models\Sip;
@@ -35,7 +36,7 @@ class HoldingController extends Controller
         return Inertia::render('holdings/index', [
             'holdings' => $holdings->sortBy('scheme.name')->values()->map(fn (Holding $holding) => [
                 'id' => $holding->id,
-                'scheme' => $this->schemeSummary($holding->scheme),
+                'scheme' => SchemePresenter::summary($holding->scheme),
                 'performance' => $performances[$holding->id]->toArray(),
             ]),
             'summary' => $total->toArray(),
@@ -120,7 +121,7 @@ class HoldingController extends Controller
         return Inertia::render('holdings/show', [
             'holding' => [
                 'id' => $holding->id,
-                'scheme' => $this->schemeSummary($holding->scheme),
+                'scheme' => SchemePresenter::summary($holding->scheme),
                 'performance' => $performance->toArray(),
             ],
             'transactions' => $transactions,
@@ -164,25 +165,10 @@ class HoldingController extends Controller
             ->get();
 
         return array_values($schemes->map(fn (Scheme $scheme) => [
-            ...$this->schemeSummary($scheme),
+            ...SchemePresenter::summary($scheme),
             'amc' => $scheme->amc,
             'is_held' => $held->has($scheme->id),
         ])->all());
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function schemeSummary(Scheme $scheme): array
-    {
-        return [
-            'id' => $scheme->id,
-            'name' => $scheme->name,
-            'category' => $scheme->category,
-            'plan' => $scheme->plan?->value,
-            'latest_nav' => $scheme->latest_nav,
-            'latest_nav_date' => $scheme->latest_nav_date?->toDateString(),
-        ];
     }
 
     /**

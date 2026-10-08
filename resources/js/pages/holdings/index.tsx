@@ -2,12 +2,12 @@ import { Head, Link } from '@inertiajs/react';
 import { Plus, WalletCards } from 'lucide-react';
 import Heading from '@/components/heading';
 import Gain from '@/components/portfolio/gain';
+import HoldingsTable from '@/components/portfolio/holdings-table';
 import StatTile from '@/components/portfolio/stat-tile';
 import XirrValue from '@/components/portfolio/xirr-value';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatPaise, formatSignedPaise } from '@/lib/format';
-import { create, index, show } from '@/routes/holdings';
+import { create, index } from '@/routes/holdings';
 import type { HoldingSummary, Performance } from '@/types/portfolio';
 
 export default function HoldingsIndex({
@@ -79,37 +79,7 @@ export default function HoldingsIndex({
                             </StatTile>
                         </div>
 
-                        <div className="overflow-x-auto rounded-xl border">
-                            <table className="w-full text-sm">
-                                <thead className="bg-muted/50 text-left text-muted-foreground">
-                                    <tr>
-                                        <th className="px-4 py-3 font-medium">
-                                            Fund
-                                        </th>
-                                        <th className="px-4 py-3 text-right font-medium">
-                                            Invested
-                                        </th>
-                                        <th className="px-4 py-3 text-right font-medium">
-                                            Current value
-                                        </th>
-                                        <th className="px-4 py-3 text-right font-medium">
-                                            Gain
-                                        </th>
-                                        <th className="px-4 py-3 text-right font-medium">
-                                            XIRR
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {holdings.map((holding) => (
-                                        <HoldingRow
-                                            key={holding.id}
-                                            holding={holding}
-                                        />
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <HoldingsTable holdings={holdings} />
 
                         <p className="text-xs text-muted-foreground">
                             Invested is the cost of the units you still hold,
@@ -120,52 +90,6 @@ export default function HoldingsIndex({
                 )}
             </div>
         </>
-    );
-}
-
-function HoldingRow({ holding }: { holding: HoldingSummary }) {
-    const { performance } = holding;
-
-    return (
-        <tr className="border-t">
-            <td className="px-4 py-3">
-                <Link
-                    href={show(holding.id)}
-                    className="font-medium hover:underline"
-                >
-                    {holding.scheme.name}
-                </Link>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span>{holding.scheme.category}</span>
-                    {holding.scheme.plan && (
-                        <Badge variant="outline" className="capitalize">
-                            {holding.scheme.plan}
-                        </Badge>
-                    )}
-                </div>
-            </td>
-            <td className="px-4 py-3 text-right tabular-nums">
-                {formatPaise(performance.invested_paise)}
-            </td>
-            <td className="px-4 py-3 text-right font-medium tabular-nums">
-                {formatPaise(performance.value_paise)}
-            </td>
-            <td className="px-4 py-3 text-right whitespace-nowrap">
-                <Gain
-                    paise={performance.unrealised_gain_paise}
-                    pct={performance.absolute_return_pct}
-                />
-                {performance.realised_gain_paise !== 0 && (
-                    <div className="text-xs text-muted-foreground">
-                        realised{' '}
-                        {formatSignedPaise(performance.realised_gain_paise)}
-                    </div>
-                )}
-            </td>
-            <td className="px-4 py-3 text-right">
-                <XirrValue performance={performance} />
-            </td>
-        </tr>
     );
 }
 

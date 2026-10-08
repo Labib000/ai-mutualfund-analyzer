@@ -62,3 +62,31 @@ export type PortfolioSip = {
     next_due: string | null;
     earliest_end_date: string;
 };
+
+export type HistoryPoint = {
+    date: string;
+    value_paise: number;
+    invested_paise: number;
+};
+
+export type AssetClassKey =
+    | 'equity'
+    | 'debt'
+    | 'hybrid'
+    | 'solution_oriented'
+    | 'other';
+
+export type Allocation = {
+    classes: {
+        key: AssetClassKey;
+        label: string;
+        value_paise: number;
+        pct: number;
+    }[];
+    categories: {
+        label: string;
+        asset_class: AssetClassKey;
+        value_paise: number;
+        pct: number;
+    }[];
+};

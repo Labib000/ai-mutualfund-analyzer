@@ -80,7 +80,7 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 - **holdings** — `user_id`, `scheme_id`; unique per user and scheme. A "fund" in the portfolio: transactions and SIPs belong to it, ownership is checked on it, and Free-plan fund limits count it.
 - **sips** — `holding_id`, `amount_paise`, `day_of_month` (1–31), `start_date`, `end_date` (nullable; stopping sets it to today), `generated_until` (date of the last installment recorded, so edits only affect future installments).
 - **transactions** — `holding_id`, `sip_id` (nullable; unique with `txn_date`), `type` (purchase, sip_installment, redemption), `txn_date`, `nav_date` (the date whose NAV was applied), `amount_paise`, `stamp_duty_paise`, `nav` DECIMAL(12,4), `units` DECIMAL(15,3), `units_overridden` (bool).
-- **portfolio_snapshots** — _deferred._ Calculating a handful of funds per request is cheap; add this cache only if profiling shows it's needed.
+- **portfolio_snapshots** — _not needed._ Returns are calculated per request (about 80 ms for 20 funds with 10-year SIPs). Only the dashboard's weekly value history is cached, as one cache entry per user replaced whenever a transaction or a held scheme's NAV changes.
 - **plans** — `code` (free, pro), `price_paise`, `duration_days`, `max_funds` (nullable = unlimited), `ai_requests_per_month`.
 - **user_plans** — `user_id`, `plan_id`, `starts_at`, `ends_at`, `status`.
 - **payments** — one row per Razorpay order: `user_id`, `plan_id`, `razorpay_order_id` (unique), `razorpay_payment_id`, `amount_paise`, `status` (current state, for fast queries).
@@ -138,8 +138,12 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 ### 1d. Dashboard
 
 - Summary cards (invested, current value, gain, XIRR).
-- Holdings table per fund.
-- Value-over-time chart and allocation by category.
+- Top holdings table (full list on the Portfolio page).
+- Value-over-time chart: weekly current value against FIFO invested, with 3M / 6M / 1Y / 3Y / All ranges and a table view.
+- Allocation by asset class (Equity, Debt, Hybrid, Solution oriented, Other, mapped from AMFI categories including legacy names) and by sub-category.
+- Chart colours come from a palette validated for colour-blind separation in light and dark mode.
+
+**Status: Phase 1 complete (October 2026).**
 
 **Done when:** a user can add funds and SIPs, see accurate values and XIRR that match a spreadsheet `XIRR()` for the same cash flows, and NAVs update automatically. XIRR and SIP generation have unit tests including edge cases.
 

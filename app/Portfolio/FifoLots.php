@@ -19,11 +19,22 @@ final class FifoLots
     private int $realisedGainPaise = 0;
 
     /**
+     * Running totals, so reading them doesn't re-add every lot.
+     *
+     * @var numeric-string
+     */
+    private string $unitsHeld = '0';
+
+    private int $costPaise = 0;
+
+    /**
      * @param  numeric-string  $units
      */
     public function buy(string $units, int $costPaise): void
     {
         $this->lots[] = ['units' => $units, 'cost' => $costPaise];
+        $this->unitsHeld = bcadd($this->unitsHeld, $units, UnitCalculator::UNITS_SCALE);
+        $this->costPaise += $costPaise;
     }
 
     /**
@@ -62,6 +73,8 @@ final class FifoLots
         }
 
         $this->realisedGainPaise += $proceedsPaise - $costRemoved;
+        $this->unitsHeld = bcsub($this->unitsHeld, $units, UnitCalculator::UNITS_SCALE);
+        $this->costPaise -= $costRemoved;
     }
 
     /**
@@ -69,13 +82,7 @@ final class FifoLots
      */
     public function unitsHeld(): string
     {
-        $units = '0';
-
-        foreach ($this->lots as $lot) {
-            $units = bcadd($units, $lot['units'], UnitCalculator::UNITS_SCALE);
-        }
-
-        return bcadd($units, '0', UnitCalculator::UNITS_SCALE);
+        return bcadd($this->unitsHeld, '0', UnitCalculator::UNITS_SCALE);
     }
 
     /**
@@ -83,7 +90,7 @@ final class FifoLots
      */
     public function costPaise(): int
     {
-        return array_sum(array_column($this->lots, 'cost'));
+        return $this->costPaise;
     }
 
     /**

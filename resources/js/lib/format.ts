@@ -5,6 +5,24 @@ const inr = new Intl.NumberFormat('en-IN', {
     maximumFractionDigits: 2,
 });
 
+const inrCompact = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+});
+
+const monthFormat = new Intl.DateTimeFormat('en-IN', {
+    month: 'short',
+    timeZone: 'UTC',
+});
+
+const dayMonthFormat = new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+});
+
 const dateFormat = new Intl.DateTimeFormat('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -50,6 +68,24 @@ export function paiseToRupeeInput(paise: number): string {
     return rest === 0
         ? String(rupees)
         : `${rupees}.${String(rest).padStart(2, '0')}`;
+}
+
+/**
+ * Short rupee amounts for chart axes, e.g. 450000000 paise → "₹45L".
+ */
+export function formatCompactPaise(paise: number): string {
+    return inrCompact.format(paise / 100);
+}
+
+/**
+ * Axis date labels: "Oct '26" for long ranges, "5 Oct" for short ones.
+ */
+export function formatAxisDate(date: string, short: boolean): string {
+    const parsed = new Date(`${date}T00:00:00Z`);
+
+    return short
+        ? dayMonthFormat.format(parsed)
+        : `${monthFormat.format(parsed)} '${date.slice(2, 4)}`;
 }
 
 /**

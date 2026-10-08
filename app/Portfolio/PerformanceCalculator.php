@@ -64,7 +64,7 @@ final class PerformanceCalculator
     {
         $movements = $holding->movements;
         // Same-day purchases come before redemptions, as in UnitLedger.
-        usort($movements, fn (Movement $a, Movement $b) => [$a->date->toDateString(), ! $a->addsUnits] <=> [$b->date->toDateString(), ! $b->addsUnits]);
+        usort($movements, fn (Movement $a, Movement $b) => [$a->day, ! $a->addsUnits] <=> [$b->day, ! $b->addsUnits]);
 
         $lots = new FifoLots;
         $flows = [];
@@ -110,8 +110,8 @@ final class PerformanceCalculator
             return [null, XirrStatus::NotMeaningful];
         }
 
-        $dates = array_map(fn (CashFlow $flow) => $flow->date->startOfDay(), $flows);
-        $span = (int) min($dates)->diffInDays(max($dates));
+        $days = array_map(fn (CashFlow $flow) => $flow->epochDay, $flows);
+        $span = max($days) - min($days);
 
         if ($span < self::MIN_XIRR_DAYS) {
             return [null, XirrStatus::TooRecent];
