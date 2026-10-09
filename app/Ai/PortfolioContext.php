@@ -9,6 +9,8 @@ use App\Models\Sip;
 use App\Models\User;
 use App\Nav\SchemeStats;
 use App\Portfolio\Allocation;
+use App\Portfolio\Insight;
+use App\Portfolio\PortfolioInsights;
 use App\Portfolio\PortfolioPerformance;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
@@ -23,6 +25,7 @@ class PortfolioContext
         private readonly PortfolioPerformance $performance,
         private readonly Allocation $allocation,
         private readonly SchemeStats $schemeStats,
+        private readonly PortfolioInsights $insights,
     ) {}
 
     /**
@@ -83,15 +86,19 @@ class PortfolioContext
             'xirr' => $total->xirr,
             'xirr_status' => $total->xirrStatus,
             'valued_on' => $total->valuedOn?->toDateString(),
-        ], $allocation['classes']);
+        ], $allocation['classes'], array_map(
+            fn (Insight $insight) => "{$insight->title}. {$insight->detail}",
+            $this->insights->of($holdings, $performances, $total),
+        ));
     }
 
     /**
      * @param  list<array{name: string, category: string, asset_class: string, invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, first_investment: ?string, fund_stats: ?string, sips: list<array{amount_paise: int, day: int}>}>  $funds
      * @param  array{invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, valued_on: ?string}  $total
      * @param  list<array{label: string, pct: float}>  $classes
+     * @param  list<string>  $observations  Findings of Hisaab's insight rules
      */
-    public static function render(array $funds, array $total, array $classes): string
+    public static function render(array $funds, array $total, array $classes, array $observations = []): string
     {
         $lines = [];
         $lines[] = 'Values in Indian rupees'.($total['valued_on'] ? ', at NAVs up to '.self::date($total['valued_on']) : '').'.';
@@ -149,6 +156,15 @@ class PortfolioContext
                 ));
 
             $lines[] = implode(' | ', $parts);
+        }
+
+        if ($observations !== []) {
+            $lines[] = '';
+            $lines[] = 'OBSERVATIONS (found by Hisaab\'s rules):';
+
+            foreach ($observations as $observation) {
+                $lines[] = '- '.$observation;
+            }
         }
 
         return implode("\n", $lines);

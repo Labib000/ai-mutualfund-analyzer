@@ -71,6 +71,14 @@ class PortfolioContextTest extends TestCase
         $this->assertStringNotContainsString('ALLOCATION', $text);
     }
 
+    public function test_observations_are_listed_after_the_funds()
+    {
+        $text = PortfolioContext::render([self::fund()], self::total(), [], ['Test Fund is a Regular plan. Regular plans include a distributor commission.']);
+
+        $this->assertStringEndsWith("OBSERVATIONS (found by Hisaab's rules):\n- Test Fund is a Regular plan. Regular plans include a distributor commission.", $text);
+        $this->assertStringNotContainsString('OBSERVATIONS', PortfolioContext::render([self::fund()], self::total(), []));
+    }
+
     public function test_xirr_that_is_not_shown_is_explained()
     {
         $recent = PortfolioContext::render([self::fund(['xirr' => null, 'xirr_status' => XirrStatus::TooRecent])], self::total(), []);

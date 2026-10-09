@@ -48,6 +48,8 @@ class AiFeaturesTest extends TestCase
         $this->assertStringContainsString('<portfolio_data>', $prompt);
         $this->assertStringContainsString("Axis Children's Fund - Direct Plan - Growth Option", $prompt);
         $this->assertStringContainsString('invested ₹10,000.00', $prompt);
+        $this->assertStringContainsString("OBSERVATIONS (found by Hisaab's rules):\n", $prompt);
+        $this->assertStringContainsString('- XIRR appears after 30 days.', $prompt);
         $this->assertStringContainsString(Prompts::SUMMARY_TASK, $prompt);
         $this->assertStringNotContainsString($this->user->name, $prompt);
         $this->assertStringNotContainsString($this->user->email, $prompt);

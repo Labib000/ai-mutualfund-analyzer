@@ -104,3 +104,10 @@ export type FundStats = {
     drawdown_peak: string | null;
     drawdown_trough: string | null;
 };
+
+export type Insight = {
+    code: string;
+    tone: 'attention' | 'info';
+    title: string;
+    detail: string;
+};

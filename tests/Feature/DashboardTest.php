@@ -31,6 +31,7 @@ class DashboardTest extends TestCase
                 ->where('history', [])
                 ->where('allocation', ['classes' => [], 'categories' => []])
                 ->where('top_holdings', [])
+                ->where('insights', [])
                 ->where('summary.invested_paise', 0));
     }
 
@@ -58,7 +59,13 @@ class DashboardTest extends TestCase
                 ->where('allocation.classes.0.pct', 100)
                 ->where('allocation.categories.0.label', 'Flexi Cap Fund')
                 ->has('top_holdings', 1)
-                ->where('top_holdings.0.id', $this->holding->id));
+                ->where('top_holdings.0.id', $this->holding->id)
+                ->where('insights', fn ($insights) => collect($insights)->contains(fn (array $insight) => $insight === [
+                    'code' => 'single_asset_class',
+                    'tone' => 'info',
+                    'title' => 'All your money is in Equity funds',
+                    'detail' => 'Equity funds follow the stock market, so their value can rise and fall sharply over short periods.',
+                ])));
     }
 
     public function test_allocation_and_top_holdings_span_asset_classes()

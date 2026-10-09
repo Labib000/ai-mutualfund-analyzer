@@ -9,6 +9,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import AiSummaryCard from '@/components/ai/ai-summary-card';
 import AllocationBar from '@/components/dashboard/allocation-bar';
 import CategoryList from '@/components/dashboard/category-list';
+import InsightsCard from '@/components/dashboard/insights-card';
 import PortfolioSummary from '@/components/dashboard/portfolio-summary';
 import ValueChart from '@/components/dashboard/value-chart';
 import HoldingsTable from '@/components/portfolio/holdings-table';
@@ -29,6 +30,7 @@ import type {
     Allocation,
     HistoryPoint,
     HoldingSummary,
+    Insight,
     Performance,
 } from '@/types/portfolio';
 
@@ -37,6 +39,7 @@ export default function Dashboard({
     ai_remaining: aiRemaining,
     summary,
     history,
+    insights,
     allocation,
     top_holdings: topHoldings,
 }: {
@@ -44,6 +47,7 @@ export default function Dashboard({
     ai_remaining: number;
     summary: Performance;
     history: HistoryPoint[];
+    insights: Insight[];
     allocation: Allocation;
     top_holdings: HoldingSummary[];
 }) {
@@ -66,6 +70,10 @@ export default function Dashboard({
                 ) : (
                     <>
                         <PortfolioSummary summary={summary} />
+
+                        {insights.length > 0 && (
+                            <InsightsCard insights={insights} />
+                        )}
 
                         <AiSummaryCard remaining={aiRemaining} />
 
