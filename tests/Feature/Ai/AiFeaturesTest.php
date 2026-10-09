@@ -120,6 +120,8 @@ class AiFeaturesTest extends TestCase
         $this->assertSame('user', $messages[2]['role']);
         $this->assertStringContainsString('<portfolio_data>', $messages[2]['content']);
         $this->assertStringEndsWith('Which fund has the best XIRR?', $messages[2]['content']);
+        $this->assertStringContainsString('CASH FLOW BY FINANCIAL YEAR (April to March): FY 2026-27 invested ₹10,000.00.', $messages[2]['content']);
+        $this->assertStringContainsString('CHANGE OVER THE LAST 30 DAYS (7 Sep 2026 to 7 Oct 2026)', $messages[2]['content']);
         $this->assertSame(AiFeature::Ask, AiUsage::sole()->feature);
     }
 
@@ -293,6 +295,11 @@ class AiFeaturesTest extends TestCase
 
         $this->get(route('ask'))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->component('ask')->where('has_funds', true)->where('remaining', 19));
+            ->assertInertia(fn ($page) => $page
+                ->component('ask')
+                ->where('has_funds', true)
+                ->where('remaining', 19)
+                ->where('suggestions.0', "Why is Axis Children's Fund below its cost?")
+                ->has('suggestions', 4));
     }
 }

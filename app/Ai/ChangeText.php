@@ -12,7 +12,10 @@ use Carbon\CarbonImmutable;
  */
 final class ChangeText
 {
-    public static function render(PortfolioChangeResult $change): string
+    /**
+     * @param  bool  $perFund  Every fund's line, or only the funds that moved most and least
+     */
+    public static function render(PortfolioChangeResult $change, bool $perFund = true): string
     {
         $lines = [
             'CHANGE OVER THE '.strtoupper($change->period->label()).' ('.self::date($change->from).' to '.self::date($change->to).'): '
@@ -21,6 +24,16 @@ final class ChangeText
                 .'; market movement '.self::movement($change->marketPaise(), $change->marketPct())
                 .'; SIP installments recorded: '.$change->sipInstallments.'.',
         ];
+
+        if (! $perFund) {
+            foreach (['Moved most' => $change->best(), 'Moved least' => $change->worst()] as $label => $fund) {
+                if ($fund !== null) {
+                    $lines[] = "- {$label}: {$fund->name}: ".self::fund($fund);
+                }
+            }
+
+            return implode("\n", $lines);
+        }
 
         foreach ($change->funds as $fund) {
             $lines[] = '- '.$fund->name.': '.self::fund($fund);

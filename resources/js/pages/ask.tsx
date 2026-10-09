@@ -23,26 +23,27 @@ const MAX_QUESTION = 500;
 // The server accepts up to 6 earlier turns; older ones are dropped.
 const HISTORY_TURNS = 6;
 
-const SUGGESTIONS = [
-    'Which of my funds has the best XIRR so far?',
-    'How is my money split between equity and debt?',
-    'Why is one of my funds showing a loss?',
-    'What does XIRR mean for my SIP?',
-];
-
 type Turn = { role: 'user' | 'assistant'; content: string };
 
 export default function Ask({
     has_funds: hasFunds,
     remaining,
+    suggestions,
 }: {
     has_funds: boolean;
     remaining: number;
+    suggestions: string[];
 }) {
     const [turns, setTurns] = useState<Turn[]>([]);
     const [question, setQuestion] = useState('');
     const ai = useAiRequest(remaining);
     const bottom = useRef<HTMLDivElement>(null);
+    const asked = new Set(
+        turns
+            .filter((turn) => turn.role === 'user')
+            .map((turn) => turn.content),
+    );
+    const unasked = suggestions.filter((suggestion) => !asked.has(suggestion));
 
     useEffect(() => {
         bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -107,25 +108,12 @@ export default function Ask({
                 ) : (
                     <>
                         {turns.length === 0 && (
-                            <div className="space-y-3">
-                                <p className="text-sm text-muted-foreground">
-                                    Try asking:
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {SUGGESTIONS.map((suggestion) => (
-                                        <Button
-                                            key={suggestion}
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-auto py-1.5 text-left whitespace-normal"
-                                            onClick={() => send(suggestion)}
-                                            disabled={ai.loading}
-                                        >
-                                            {suggestion}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
+                            <Suggestions
+                                label="Try asking:"
+                                questions={unasked}
+                                disabled={ai.loading}
+                                onPick={send}
+                            />
                         )}
 
                         <div className="space-y-4" aria-live="polite">
@@ -166,6 +154,16 @@ export default function Ask({
                                     </AlertDescription>
                                 </Alert>
                             )}
+                            {turns.length > 0 &&
+                                !ai.loading &&
+                                unasked.length > 0 && (
+                                    <Suggestions
+                                        label="You could also ask:"
+                                        questions={unasked}
+                                        disabled={ai.loading}
+                                        onPick={send}
+                                    />
+                                )}
                             <div ref={bottom} />
                         </div>
 
@@ -219,6 +217,42 @@ export default function Ask({
                 )}
             </div>
         </>
+    );
+}
+
+function Suggestions({
+    label,
+    questions,
+    disabled,
+    onPick,
+}: {
+    label: string;
+    questions: string[];
+    disabled: boolean;
+    onPick: (question: string) => void;
+}) {
+    if (questions.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <div className="flex flex-wrap gap-2">
+                {questions.map((question) => (
+                    <Button
+                        key={question}
+                        variant="outline"
+                        size="sm"
+                        className="h-auto py-1.5 text-left whitespace-normal"
+                        onClick={() => onPick(question)}
+                        disabled={disabled}
+                    >
+                        {question}
+                    </Button>
+                ))}
+            </div>
+        </div>
     );
 }
 

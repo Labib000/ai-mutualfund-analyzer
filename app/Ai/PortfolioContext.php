@@ -3,13 +3,17 @@
 namespace App\Ai;
 
 use App\Enums\AssetClass;
+use App\Enums\ChangePeriod;
 use App\Enums\XirrStatus;
 use App\Models\Holding;
 use App\Models\Sip;
 use App\Models\User;
 use App\Nav\SchemeStats;
 use App\Portfolio\Allocation;
+use App\Portfolio\FinancialYears;
+use App\Portfolio\HoldingInput;
 use App\Portfolio\Insight;
+use App\Portfolio\PortfolioChangeResult;
 use App\Portfolio\PortfolioInsights;
 use App\Portfolio\PortfolioPerformance;
 use App\Support\Money;
@@ -26,6 +30,7 @@ class PortfolioContext
         private readonly Allocation $allocation,
         private readonly SchemeStats $schemeStats,
         private readonly PortfolioInsights $insights,
+        private readonly FinancialYears $financialYears,
     ) {}
 
     /**
@@ -35,6 +40,7 @@ class PortfolioContext
     {
         [
             'holdings' => $holdings,
+            'inputs' => $inputs,
             'performances' => $performances,
             'total' => $total,
         ] = $this->performance->forUser($user);
@@ -86,10 +92,14 @@ class PortfolioContext
             'xirr' => $total->xirr,
             'xirr_status' => $total->xirrStatus,
             'valued_on' => $total->valuedOn?->toDateString(),
-        ], $allocation['classes'], array_map(
-            fn (Insight $insight) => "{$insight->title}. {$insight->detail}",
-            $this->insights->of($holdings, $performances, $total),
-        ));
+        ], $allocation['classes'],
+            observations: array_map(
+                fn (Insight $insight) => "{$insight->title}. {$insight->detail}",
+                $this->insights->of($holdings, $performances, $total),
+            ),
+            years: $this->financialYears->of(array_merge(...array_values(array_map(fn (HoldingInput $input) => $input->movements, $inputs)))),
+            change: $this->performance->changes($holdings, $inputs)[ChangePeriod::Month->value] ?? null,
+        );
     }
 
     /**
@@ -97,8 +107,9 @@ class PortfolioContext
      * @param  array{invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, valued_on: ?string}  $total
      * @param  list<array{label: string, pct: float}>  $classes
      * @param  list<string>  $observations  Findings of Hisaab's insight rules
+     * @param  list<array{label: string, invested_paise: int, redeemed_paise: int}>  $years  Cash flow per financial year, oldest first
      */
-    public static function render(array $funds, array $total, array $classes, array $observations = []): string
+    public static function render(array $funds, array $total, array $classes, array $observations = [], array $years = [], ?PortfolioChangeResult $change = null): string
     {
         $lines = [];
         $lines[] = 'Values in Indian rupees'.($total['valued_on'] ? ', at NAVs up to '.self::date($total['valued_on']) : '').'.';
@@ -120,11 +131,12 @@ class PortfolioContext
         $lines[] = 'FUNDS ('.count($funds).'):';
 
         foreach ($funds as $index => $fund) {
-            $parts = [
-                ($index + 1).'. '.$fund['name'],
-                'category: '.$fund['category'],
-                'asset class: '.$fund['asset_class'],
-            ];
+            $parts = [($index + 1).'. '.$fund['name'], 'category: '.$fund['category']];
+
+            // "Equity Scheme - …" already says the asset class; legacy names may not.
+            if (! str_starts_with(mb_strtolower($fund['category']), mb_strtolower($fund['asset_class']))) {
+                $parts[] = 'asset class: '.$fund['asset_class'];
+            }
 
             if ($fund['value_paise'] === 0 && $fund['invested_paise'] === 0 && $fund['realised_gain_paise'] !== 0) {
                 $parts[] = 'fully redeemed, realised gain '.Money::formatInr($fund['realised_gain_paise'], signed: true);
@@ -156,6 +168,20 @@ class PortfolioContext
                 ));
 
             $lines[] = implode(' | ', $parts);
+        }
+
+        if ($years !== []) {
+            $lines[] = '';
+            $lines[] = 'CASH FLOW BY FINANCIAL YEAR (April to March): '.implode('; ', array_map(
+                fn (array $year) => $year['label'].' invested '.Money::formatInr($year['invested_paise'])
+                    .($year['redeemed_paise'] > 0 ? ', redeemed '.Money::formatInr($year['redeemed_paise']) : ''),
+                $years,
+            )).'.';
+        }
+
+        if ($change !== null && $change->funds !== []) {
+            $lines[] = '';
+            $lines[] = ChangeText::render($change, perFund: false);
         }
 
         if ($observations !== []) {

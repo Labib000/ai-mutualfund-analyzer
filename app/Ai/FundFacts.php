@@ -36,7 +36,15 @@ final class FundFacts
      */
     public static function short(FundStatsResult $stats): string
     {
-        $parts = ['fund NAV return '.self::returns($stats, withSince: false)];
+        $returns = [];
+
+        foreach (['1y' => $stats->return1y, '3y' => $stats->cagr3y, '5y' => $stats->cagr5y] as $label => $value) {
+            if ($value !== null) {
+                $returns[] = $label.' '.self::signed($value).($label === '1y' ? '' : ' p.a.');
+            }
+        }
+
+        $parts = ['fund NAV return '.($returns === [] ? self::returns($stats, withSince: false) : implode(', ', $returns))];
 
         if ($stats->volatility !== null) {
             $parts[] = 'volatility '.self::pct($stats->volatility);
@@ -46,7 +54,7 @@ final class FundFacts
             $parts[] = 'largest fall −'.self::pct($stats->maxDrawdown);
         }
 
-        return implode(', ', $parts);
+        return implode('; ', $parts);
     }
 
     private static function returns(FundStatsResult $stats, bool $withSince): string

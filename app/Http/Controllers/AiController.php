@@ -9,9 +9,12 @@ use App\Actions\Ai\SummarisePortfolio;
 use App\Ai\AiQuota;
 use App\Ai\AiQuotaExceededException;
 use App\Ai\AiUnavailableException;
+use App\Ai\SuggestedQuestions;
 use App\Enums\ChangePeriod;
 use App\Http\Requests\Ai\AskRequest;
 use App\Models\Holding;
+use App\Portfolio\PortfolioInsights;
+use App\Portfolio\PortfolioPerformance;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,11 +32,14 @@ class AiController extends Controller
 
     public function __construct(private readonly AiQuota $quota) {}
 
-    public function page(Request $request): Response
+    public function page(Request $request, PortfolioPerformance $performance, PortfolioInsights $insights): Response
     {
+        ['holdings' => $holdings, 'performances' => $performances, 'total' => $total] = $performance->forUser($request->user());
+
         return Inertia::render('ask', [
-            'has_funds' => $request->user()->holdings()->exists(),
+            'has_funds' => $holdings->isNotEmpty(),
             'remaining' => $this->quota->remaining($request->user()),
+            'suggestions' => SuggestedQuestions::for($holdings->isEmpty() ? [] : $insights->of($holdings, $performances, $total)),
         ]);
     }
 

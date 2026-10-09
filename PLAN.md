@@ -173,6 +173,39 @@ This is a personal portfolio project built to demonstrate senior-level engineeri
 - **Chat history** lives only in the browser; the last 6 turns go with each question.
 - **Rendering:** answers are plain text, shown with a fixed disclaimer; nothing is rendered as HTML.
 
+### 2b. Richer AI input (October 2026)
+
+The first AI version only saw per-fund totals, so its answers restated numbers. Phase 2b gives it real facts. **Our code computes every figure and finding** (unit tested in `app/Portfolio/`), **and the AI only narrates.** The deterministic parts show without AI and use no quota.
+
+- **Fund facts** (`FundStats`, cached per scheme by `SchemeStats`):
+    - Computed from the stored NAV history:
+        - trailing 1Y, 3Y and 5Y returns (CAGR over a year);
+        - the return since the first stored NAV;
+        - volatility (annualised spread of weekly returns, last 3 years);
+        - the largest fall from a peak.
+    - NAV ratios use bcmath; only the resulting rates are floats.
+    - The figures appear on the holding page and in the fund explainer and portfolio context.
+- **Insights** (`Insights`): fixed rules that find:
+    - funds below cost;
+    - Regular plans (stated as a fact about commission and expense ratio);
+    - one fund above 40% of value, or one fund house above 50%;
+    - a single asset class;
+    - funds sharing a category;
+    - funds idle for over 12 months;
+    - a short XIRR history.
+
+    They're shown on the dashboard, sent to the AI summary as observations, and turned into suggested questions on the Ask page.
+- **What changed** (`PortfolioChange`):
+    - Splits the change over 7 days, 30 days or month to date into new money (purchases and SIPs minus redemptions) and market movement, per fund and in total.
+    - Values each end of the period at the latest NAV on or before it.
+    - A dashboard card shows the figures; "Explain this" calls `ai/digest`, which is cached per user and period.
+- **Smarter Ask:**
+    - The context adds fund facts, observations, cash flow by financial year (April to March), and the last 30 days' change (totals and biggest movers only).
+    - The system prompt asks the model to quote figures.
+    - A unit test keeps a 20-fund portfolio's context under 13,000 characters (about 3.2K tokens) to fit Groq's free-tier limit.
+
+**Status: Phase 2 complete (October 2026).**
+
 ---
 
 ## Phase 3 — Razorpay Pro plan

@@ -21,6 +21,7 @@ class InsightsTest extends TestCase
         $this->assertSame('attention', $insight->tone);
         $this->assertSame('Axis Small Cap Fund is below its cost', $insight->title);
         $this->assertSame('Its current value is ₹500.00 (5.0%) less than the cost of the units held.', $insight->detail);
+        $this->assertSame('Why is Axis Small Cap Fund below its cost?', $insight->question);
     }
 
     public function test_several_losing_funds_are_listed_together()

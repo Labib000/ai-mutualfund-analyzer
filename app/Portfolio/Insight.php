@@ -10,12 +10,14 @@ final readonly class Insight
 {
     /**
      * @param  'attention'|'info'  $tone
+     * @param  string|null  $question  A question the user could ask the AI about it
      */
     public function __construct(
         public string $code,
         public string $tone,
         public string $title,
         public string $detail,
+        public ?string $question = null,
     ) {}
 
     /**

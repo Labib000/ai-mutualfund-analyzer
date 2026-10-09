@@ -72,6 +72,7 @@ final class Insights
                 'attention',
                 "{$fund->shortName()} is below its cost",
                 'Its current value is '.Money::formatInr($loss).' ('.self::pct($loss / $fund->investedPaise).') less than the cost of the units held.',
+                "Why is {$fund->shortName()} below its cost?",
             );
         }
 
@@ -80,6 +81,7 @@ final class Insights
             'attention',
             count($losing).' funds are below their cost',
             'Current value is less than the cost of the units held in '.self::names($losing).'.',
+            'Why are some of my funds below their cost?',
         );
     }
 
@@ -99,6 +101,7 @@ final class Insights
             'info',
             count($regular) === 1 ? "{$regular[0]->shortName()} is a Regular plan" : count($regular).' funds are Regular plans',
             'Regular plans include a distributor commission, so their expense ratio is higher than the Direct plan of the same scheme.',
+            'What is the difference between Direct and Regular plans?',
         );
     }
 
@@ -123,6 +126,7 @@ final class Insights
             'info',
             "{$held[0]->shortName()} is ".self::pct($share).' of your portfolio',
             'With this much in one fund, its ups and downs largely decide how your whole portfolio moves.',
+            "What does having so much in {$held[0]->shortName()} mean for my portfolio?",
         );
     }
 
@@ -153,6 +157,7 @@ final class Insights
             'info',
             count($byAmc) === 1 ? "All your funds are from {$amc}" : self::pct($share)." of your money is with {$amc}",
             'Funds from one fund house are run under the same investment process and policies.',
+            'What does having most of my money with one fund house mean?',
         );
     }
 
@@ -178,6 +183,7 @@ final class Insights
                 AssetClass::Debt => 'Debt funds lend to governments and companies; their value moves with interest rates and credit quality.',
                 default => "Your portfolio's ups and downs follow how {$class->label()} funds behave.",
             },
+            "What does having all my money in {$class->label()} funds mean?",
         );
     }
 
@@ -204,6 +210,7 @@ final class Insights
                 'info',
                 count($funds)." funds in {$label}",
                 self::names($funds).' are in the same category, so they often invest in many of the same securities.',
+                'What does holding '.count($funds)." funds in {$label} mean?",
             );
         }
 
@@ -242,6 +249,7 @@ final class Insights
                 'info',
                 'Your XIRR covers less than a year',
                 'An annualised return from a short period can swing a lot; it settles as your investments age.',
+                'Why is my XIRR not reliable yet?',
             ),
             XirrStatus::TooRecent => new Insight(
                 'short_history',
