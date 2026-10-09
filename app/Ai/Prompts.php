@@ -27,6 +27,8 @@ final class Prompts
 
     public const EXPLAIN_TASK = 'Explain this mutual fund scheme for a beginner: what its category means and what it typically invests in, the general risk level of such funds (say it is general for the category, not specific to this fund), what the Direct or Regular plan means, and what an expense ratio is and why it matters. Then explain what this fund\'s past returns, volatility and largest fall mean, quoting the figures, and say that past returns do not predict future returns. We do not have this fund\'s expense ratio or riskometer reading, so do not state them. Do not say whether it is a good investment.';
 
+    public const DIGEST_TASK = 'Explain in 3 to 5 short points how this portfolio\'s value changed over the period: how much came from new money and how much from market movement, and which funds moved most, quoting the figures. Movement over days or weeks is normal and says little about long-term returns; say so briefly. Explain; do not advise.';
+
     public static function portfolioData(string $context): string
     {
         return "<portfolio_data>\n{$context}\n</portfolio_data>";
@@ -45,6 +47,11 @@ final class Prompts
     public static function question(string $context, string $question): string
     {
         return self::portfolioData($context)."\n\nThe user's question about their portfolio:\n{$question}";
+    }
+
+    public static function digest(string $change): string
+    {
+        return self::portfolioData($change)."\n\n".self::DIGEST_TASK;
     }
 
     public static function explain(string $facts): string

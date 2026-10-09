@@ -9,6 +9,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import AiSummaryCard from '@/components/ai/ai-summary-card';
 import AllocationBar from '@/components/dashboard/allocation-bar';
 import CategoryList from '@/components/dashboard/category-list';
+import ChangeCard from '@/components/dashboard/change-card';
 import InsightsCard from '@/components/dashboard/insights-card';
 import PortfolioSummary from '@/components/dashboard/portfolio-summary';
 import ValueChart from '@/components/dashboard/value-chart';
@@ -28,10 +29,12 @@ import { dashboard } from '@/routes';
 import { create, index } from '@/routes/holdings';
 import type {
     Allocation,
+    ChangePeriod,
     HistoryPoint,
     HoldingSummary,
     Insight,
     Performance,
+    PortfolioChange,
 } from '@/types/portfolio';
 
 export default function Dashboard({
@@ -39,6 +42,7 @@ export default function Dashboard({
     ai_remaining: aiRemaining,
     summary,
     history,
+    changes,
     insights,
     allocation,
     top_holdings: topHoldings,
@@ -47,6 +51,7 @@ export default function Dashboard({
     ai_remaining: number;
     summary: Performance;
     history: HistoryPoint[];
+    changes: Partial<Record<ChangePeriod, PortfolioChange>>;
     insights: Insight[];
     allocation: Allocation;
     top_holdings: HoldingSummary[];
@@ -76,6 +81,8 @@ export default function Dashboard({
                         )}
 
                         <AiSummaryCard remaining={aiRemaining} />
+
+                        <ChangeCard changes={changes} remaining={aiRemaining} />
 
                         {(showChart || showAllocation) && (
                             <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">

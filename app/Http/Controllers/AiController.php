@@ -3,16 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Ai\AskPortfolio;
+use App\Actions\Ai\DigestPortfolio;
 use App\Actions\Ai\ExplainFund;
 use App\Actions\Ai\SummarisePortfolio;
 use App\Ai\AiQuota;
 use App\Ai\AiQuotaExceededException;
 use App\Ai\AiUnavailableException;
+use App\Enums\ChangePeriod;
 use App\Http\Requests\Ai\AskRequest;
 use App\Models\Holding;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,6 +52,16 @@ class AiController extends Controller
             $text = $ask->handle($request->user(), $request->question(), $request->history());
 
             return $text === null ? self::noFunds() : ['text' => $text];
+        });
+    }
+
+    public function digest(Request $request, DigestPortfolio $digest): JsonResponse
+    {
+        $validated = $request->validate(['period' => ['required', Rule::enum(ChangePeriod::class)]]);
+
+        return $this->respond($request, function () use ($request, $digest, $validated) {
+            return $digest->handle($request->user(), ChangePeriod::from($validated['period']))
+                ?? response()->json(['error' => 'There is no change to explain yet. Check back once your funds have NAVs for this period.'], 422);
         });
     }
 

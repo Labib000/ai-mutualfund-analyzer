@@ -32,6 +32,7 @@ class DashboardTest extends TestCase
                 ->where('allocation', ['classes' => [], 'categories' => []])
                 ->where('top_holdings', [])
                 ->where('insights', [])
+                ->where('changes', [])
                 ->where('summary.invested_paise', 0));
     }
 
@@ -60,6 +61,14 @@ class DashboardTest extends TestCase
                 ->where('allocation.categories.0.label', 'Flexi Cap Fund')
                 ->has('top_holdings', 1)
                 ->where('top_holdings.0.id', $this->holding->id)
+                ->where('changes.7d.to', '2026-10-07')
+                ->where('changes.7d.from', '2026-09-30')
+                ->where('changes.month.from', '2026-09-30')
+                ->where('changes.30d.from', '2026-09-07')
+                ->where('changes.7d.end_paise', 9108390)
+                ->where('changes', fn ($changes) => collect($changes)->every(
+                    fn (array $change) => $change['market_paise'] === $change['end_paise'] - $change['start_paise'] - $change['net_flow_paise'],
+                ))
                 ->where('insights', fn ($insights) => collect($insights)->contains(fn (array $insight) => $insight === [
                     'code' => 'single_asset_class',
                     'tone' => 'info',

@@ -7,6 +7,7 @@ use App\Http\Presenters\SchemePresenter;
 use App\Models\Holding;
 use App\Portfolio\Allocation;
 use App\Portfolio\Insight;
+use App\Portfolio\PortfolioChangeResult;
 use App\Portfolio\PortfolioInsights;
 use App\Portfolio\PortfolioPerformance;
 use Illuminate\Http\Request;
@@ -45,6 +46,7 @@ class DashboardController extends Controller
             'ai_remaining' => $this->aiQuota->remaining($request->user()),
             'summary' => $total->toArray(),
             'history' => $this->performance->history($holdings, $inputs),
+            'changes' => array_map(fn (PortfolioChangeResult $change) => $change->toArray(), $this->performance->changes($holdings, $inputs)),
             'insights' => array_map(fn (Insight $insight) => $insight->toArray(), $this->insights->of($holdings, $performances, $total)),
             'allocation' => $this->allocation->of(array_values($holdings->map(fn (Holding $holding) => [
                 'category' => $holding->scheme->category,

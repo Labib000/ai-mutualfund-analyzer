@@ -2,6 +2,8 @@
 
 namespace App\Portfolio;
 
+use App\Enums\ChangePeriod;
+use App\Enums\TransactionType;
 use App\Models\Holding;
 use App\Models\Transaction;
 use App\Models\User;
@@ -18,6 +20,7 @@ class PortfolioPerformance
     public function __construct(
         private readonly PerformanceCalculator $calculator,
         private readonly ValueHistory $valueHistory,
+        private readonly PortfolioChange $change,
     ) {}
 
     /**
@@ -115,10 +118,68 @@ class PortfolioPerformance
             return [];
         }
 
-        // Plain rows, not models: a decade-old fund has ~2,700 NAVs.
+        $navs = $this->navs($holdings, min($firstDates));
+
+        $series = [];
+        foreach ($holdings as $holding) {
+            $series[] = [$inputs[$holding->id], $navs[$holding->id]];
+        }
+
+        return $this->valueHistory->series($series);
+    }
+
+    /**
+     * Value change over each period up to the latest NAV, split into new money and market movement.
+     *
+     * @param  Collection<int, Holding>  $holdings  With schemes and transactions loaded
+     * @param  array<int, HoldingInput>  $inputs  Keyed by holding ID, as returned by forUser()
+     * @return array<string, PortfolioChangeResult> Keyed by period value; empty when nothing is valued yet
+     */
+    public function changes(Collection $holdings, array $inputs): array
+    {
+        $end = $holdings->map(fn (Holding $holding) => $holding->scheme->latest_nav_date)->filter()->max();
+
+        if (! $end instanceof CarbonImmutable || $holdings->every(fn (Holding $holding) => $holding->transactions->isEmpty())) {
+            return [];
+        }
+
+        $earliest = min(array_map(fn (ChangePeriod $period) => $period->startFor($end), ChangePeriod::cases()));
+        $navs = $this->navs($holdings, $earliest);
+        $changes = [];
+
+        foreach (ChangePeriod::cases() as $period) {
+            $from = $period->startFor($end)->toDateString();
+            $to = $end->toDateString();
+            $installments = $holdings->sum(fn (Holding $holding) => $holding->transactions
+                ->filter(fn (Transaction $transaction) => $transaction->type === TransactionType::SipInstallment
+                    && $this->rawString($transaction, 'txn_date') > $from
+                    && $this->rawString($transaction, 'txn_date') <= $to)
+                ->count());
+
+            $changes[$period->value] = $this->change->over(
+                $period,
+                $end,
+                array_values($holdings->map(fn (Holding $holding) => [$holding->scheme->name, $inputs[$holding->id], $navs[$holding->id]])->all()),
+                (int) $installments,
+            );
+        }
+
+        return $changes;
+    }
+
+    /**
+     * Each holding's NAVs from a little before the given date, keyed by holding ID.
+     *
+     * @param  Collection<int, Holding>  $holdings
+     * @return array<int, array<string, string>>
+     */
+    private function navs(Collection $holdings, CarbonImmutable $from): array
+    {
+        // Plain rows, not models: a decade-old fund has ~2,700 NAVs. The extra
+        // days cover a start date that falls on a weekend or holiday.
         $rows = DB::table('nav_history')
             ->whereIn('scheme_id', $holdings->pluck('scheme_id')->unique()->values())
-            ->where('nav_date', '>=', min($firstDates)->subDays(10)->toDateString())
+            ->where('nav_date', '>=', $from->subDays(10)->toDateString())
             ->orderBy('nav_date')
             ->get(['scheme_id', 'nav_date', 'nav']);
 
@@ -127,19 +188,17 @@ class PortfolioPerformance
             $navsByScheme[$row->scheme_id][$row->nav_date] = $row->nav;
         }
 
-        $series = [];
+        $navs = [];
         foreach ($holdings as $holding) {
-            $navs = $navsByScheme[$holding->scheme_id] ?? [];
+            $navs[$holding->id] = $navsByScheme[$holding->scheme_id] ?? [];
 
             // The scheme's latest NAV, in case today's import hasn't reached nav_history.
             if ($holding->scheme->latest_nav !== null && $holding->scheme->latest_nav_date !== null) {
-                $navs[$holding->scheme->latest_nav_date->toDateString()] = $holding->scheme->latest_nav;
+                $navs[$holding->id][$holding->scheme->latest_nav_date->toDateString()] = $holding->scheme->latest_nav;
             }
-
-            $series[] = [$inputs[$holding->id], $navs];
         }
 
-        return $this->valueHistory->series($series);
+        return $navs;
     }
 
     private function rawString(Transaction $transaction, string $attribute): string

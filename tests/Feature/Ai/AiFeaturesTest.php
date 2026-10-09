@@ -182,6 +182,62 @@ class AiFeaturesTest extends TestCase
         $this->assertCount(0, $this->ai->requests);
     }
 
+    // Digest
+
+    public function test_the_digest_explains_the_change_over_the_period()
+    {
+        $this->postJson(route('ai.digest'), ['period' => '7d'])
+            ->assertOk()
+            ->assertJson(['cached' => false, 'remaining' => 19]);
+
+        $prompt = $this->ai->lastUserMessage();
+        $this->assertStringContainsString('CHANGE OVER THE LAST 7 DAYS (30 Sep 2026 to 7 Oct 2026): value ₹0.00 → ', $prompt);
+        $this->assertStringContainsString('new money in (purchases and SIPs minus redemptions) +₹10,000.00', $prompt);
+        $this->assertStringContainsString("- Axis Children's Fund - Direct Plan - Growth Option: market movement −₹", $prompt);
+        $this->assertStringContainsString('first bought in this period', $prompt);
+        $this->assertStringContainsString(Prompts::DIGEST_TASK, $prompt);
+        $this->assertStringNotContainsString($this->user->email, $prompt);
+        $this->assertSame(AiFeature::Digest, AiUsage::sole()->feature);
+    }
+
+    public function test_a_digest_is_cached_per_period_until_the_portfolio_changes()
+    {
+        $this->postJson(route('ai.digest'), ['period' => '7d']);
+        $this->postJson(route('ai.digest'), ['period' => '7d'])->assertJson(['cached' => true, 'remaining' => 19]);
+        $this->postJson(route('ai.digest'), ['period' => 'month'])->assertJson(['cached' => false, 'remaining' => 18]);
+
+        $this->post(route('holdings.purchases.store', $this->holding), ['txn_date' => '2026-10-06', 'amount' => '5000']);
+        $this->postJson(route('ai.digest'), ['period' => '7d'])->assertJson(['cached' => false]);
+
+        $this->assertCount(3, $this->ai->requests);
+        $this->assertStringContainsString('+₹15,000.00', $this->ai->lastUserMessage());
+    }
+
+    public function test_the_digest_period_is_validated()
+    {
+        $this->postJson(route('ai.digest'), ['period' => '1y'])->assertJsonValidationErrors('period');
+        $this->postJson(route('ai.digest'))->assertJsonValidationErrors('period');
+
+        $this->assertCount(0, $this->ai->requests);
+    }
+
+    public function test_an_empty_portfolio_has_no_digest()
+    {
+        $this->actingAs(User::factory()->create())
+            ->postJson(route('ai.digest'), ['period' => '7d'])
+            ->assertUnprocessable()
+            ->assertJsonPath('error', 'There is no change to explain yet. Check back once your funds have NAVs for this period.');
+
+        $this->assertCount(0, $this->ai->requests);
+    }
+
+    public function test_an_unavailable_provider_fails_the_digest_gracefully()
+    {
+        $this->ai->failing = true;
+
+        $this->postJson(route('ai.digest'), ['period' => '30d'])->assertStatus(503)->assertJson(['remaining' => 20]);
+    }
+
     // Quota, failures and limits
 
     public function test_the_monthly_quota_blocks_further_requests_until_next_month()

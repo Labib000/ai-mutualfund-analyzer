@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('throttle:ai')->prefix('ai')->name('ai.')->group(function () {
         Route::post('summary', [AiController::class, 'summary'])->name('summary');
         Route::post('ask', [AiController::class, 'ask'])->name('ask');
+        Route::post('digest', [AiController::class, 'digest'])->name('digest');
     });
 
     Route::get('holdings', [HoldingController::class, 'index'])->name('holdings.index');

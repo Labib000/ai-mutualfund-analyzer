@@ -111,3 +111,30 @@ export type Insight = {
     title: string;
     detail: string;
 };
+
+export type ChangePeriod = '7d' | '30d' | 'month';
+
+export type ChangeFund = {
+    name: string;
+    start_paise: number;
+    end_paise: number;
+    net_flow_paise: number;
+    market_paise: number;
+    market_pct: number | null;
+};
+
+export type PortfolioChange = {
+    period: ChangePeriod;
+    label: string;
+    from: string;
+    to: string;
+    start_paise: number;
+    end_paise: number;
+    net_flow_paise: number;
+    market_paise: number;
+    market_pct: number | null;
+    sip_installments: number;
+    best: ChangeFund | null;
+    worst: ChangeFund | null;
+    funds: ChangeFund[];
+};
