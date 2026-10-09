@@ -25,7 +25,7 @@ final class Prompts
 
     public const SUMMARY_TASK = 'Summarise this portfolio in 4 to 6 short points: overall value and gain, how returns compare across funds, how the money is spread across asset classes, and anything notable such as a fund with a loss or very recent investments. Explain; do not advise.';
 
-    public const EXPLAIN_TASK = 'Explain this mutual fund scheme for a beginner: what its category means and what it typically invests in, the general risk level of such funds (say it is general for the category, not specific to this fund), what the Direct or Regular plan means, and what an expense ratio is and why it matters. We do not have this fund\'s expense ratio or riskometer reading, so do not state them. Do not say whether it is a good investment.';
+    public const EXPLAIN_TASK = 'Explain this mutual fund scheme for a beginner: what its category means and what it typically invests in, the general risk level of such funds (say it is general for the category, not specific to this fund), what the Direct or Regular plan means, and what an expense ratio is and why it matters. Then explain what this fund\'s past returns, volatility and largest fall mean, quoting the figures, and say that past returns do not predict future returns. We do not have this fund\'s expense ratio or riskometer reading, so do not state them. Do not say whether it is a good investment.';
 
     public static function portfolioData(string $context): string
     {

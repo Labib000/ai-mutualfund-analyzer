@@ -9,6 +9,7 @@ use App\Models\Holding;
 use App\Models\Scheme;
 use App\Models\Sip;
 use App\Models\Transaction;
+use App\Nav\SchemeStats;
 use App\Portfolio\PortfolioPerformance;
 use App\Portfolio\SipSchedule;
 use Carbon\CarbonImmutable;
@@ -84,7 +85,7 @@ class HoldingController extends Controller
     /**
      * Show one fund with its transactions and SIPs.
      */
-    public function show(Request $request, Holding $holding, AiQuota $aiQuota): Response
+    public function show(Request $request, Holding $holding, AiQuota $aiQuota, SchemeStats $schemeStats): Response
     {
         $today = CarbonImmutable::today();
         $performance = $this->performance->forHolding($holding);
@@ -128,6 +129,7 @@ class HoldingController extends Controller
             'transactions' => $transactions,
             'sips' => $sips,
             'today' => $today->toDateString(),
+            'fund_stats' => $schemeStats->for($holding->scheme)?->toArray(),
             'ai_remaining' => $aiQuota->remaining($request->user()),
         ]);
     }

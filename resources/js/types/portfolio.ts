@@ -90,3 +90,17 @@ export type Allocation = {
         pct: number;
     }[];
 };
+
+export type FundStats = {
+    as_of: string;
+    since: string;
+    return_1y_pct: number | null;
+    cagr_3y_pct: number | null;
+    cagr_5y_pct: number | null;
+    since_start_pct: number;
+    since_start_annualised: boolean;
+    volatility_pct: number | null;
+    max_drawdown_pct: number;
+    drawdown_peak: string | null;
+    drawdown_trough: string | null;
+};

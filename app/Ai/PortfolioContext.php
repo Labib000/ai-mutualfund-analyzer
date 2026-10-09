@@ -7,6 +7,7 @@ use App\Enums\XirrStatus;
 use App\Models\Holding;
 use App\Models\Sip;
 use App\Models\User;
+use App\Nav\SchemeStats;
 use App\Portfolio\Allocation;
 use App\Portfolio\PortfolioPerformance;
 use App\Support\Money;
@@ -21,6 +22,7 @@ class PortfolioContext
     public function __construct(
         private readonly PortfolioPerformance $performance,
         private readonly Allocation $allocation,
+        private readonly SchemeStats $schemeStats,
     ) {}
 
     /**
@@ -45,6 +47,7 @@ class PortfolioContext
         foreach ($holdings->sortByDesc(fn (Holding $h) => $performances[$h->id]->valuePaise) as $holding) {
             $performance = $performances[$holding->id];
             $firstDate = $holding->transactions->min('txn_date');
+            $stats = $this->schemeStats->for($holding->scheme);
 
             $funds[] = [
                 'name' => $holding->scheme->name,
@@ -58,6 +61,7 @@ class PortfolioContext
                 'xirr' => $performance->xirr,
                 'xirr_status' => $performance->xirrStatus,
                 'first_investment' => $firstDate instanceof CarbonImmutable ? $firstDate->toDateString() : null,
+                'fund_stats' => $stats === null ? null : FundFacts::short($stats),
                 'sips' => array_values($holding->sips
                     ->filter(fn (Sip $sip) => $sip->isRunningOn($today))
                     ->map(fn (Sip $sip) => ['amount_paise' => $sip->amount_paise, 'day' => $sip->day_of_month])
@@ -83,7 +87,7 @@ class PortfolioContext
     }
 
     /**
-     * @param  list<array{name: string, category: string, asset_class: string, invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, first_investment: ?string, sips: list<array{amount_paise: int, day: int}>}>  $funds
+     * @param  list<array{name: string, category: string, asset_class: string, invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, first_investment: ?string, fund_stats: ?string, sips: list<array{amount_paise: int, day: int}>}>  $funds
      * @param  array{invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, valued_on: ?string}  $total
      * @param  list<array{label: string, pct: float}>  $classes
      */
@@ -128,6 +132,10 @@ class PortfolioContext
             }
 
             $parts[] = self::xirr($fund['xirr'], $fund['xirr_status']);
+
+            if ($fund['fund_stats'] !== null) {
+                $parts[] = $fund['fund_stats'];
+            }
 
             if ($fund['first_investment'] !== null) {
                 $parts[] = 'investing since '.self::date($fund['first_investment']);

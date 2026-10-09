@@ -21,6 +21,7 @@ class PortfolioContextTest extends TestCase
                     'xirr' => -0.0073,
                     'xirr_status' => XirrStatus::ShortPeriod,
                     'first_investment' => '2026-01-31',
+                    'fund_stats' => 'fund NAV return 1 year +21.7%, volatility 14.2%',
                     'sips' => [['amount_paise' => 500000, 'day' => 31]],
                 ]),
                 self::fund([
@@ -51,6 +52,7 @@ class PortfolioContextTest extends TestCase
         $this->assertStringContainsString('FUNDS (2):', $text);
         $this->assertStringContainsString("1. Axis Children's Fund - Direct Plan - Growth Option | category: Equity Scheme - Flexi Cap Fund", $text);
         $this->assertStringContainsString('unrealised gain −₹116.08 (−0.26%)', $text);
+        $this->assertStringContainsString('XIRR −0.73% (annualised from less than a year, so not yet reliable) | fund NAV return 1 year +21.7%, volatility 14.2% | investing since', $text);
         $this->assertStringContainsString('investing since 31 Jan 2026 | running SIP: ₹5,000.00 monthly on day 31', $text);
         $this->assertStringContainsString('2. Parag Parikh Liquid Fund - Direct Plan - Growth | category: Debt Scheme - Liquid Fund | asset class: Debt', $text);
         $this->assertStringContainsString('XIRR +6.74% | ', $text);
@@ -78,11 +80,11 @@ class PortfolioContextTest extends TestCase
 
     /**
      * @param  array<string, mixed>  $overrides
-     * @return array{name: string, category: string, asset_class: string, invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, first_investment: ?string, sips: list<array{amount_paise: int, day: int}>}
+     * @return array{name: string, category: string, asset_class: string, invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, first_investment: ?string, fund_stats: ?string, sips: list<array{amount_paise: int, day: int}>}
      */
     private static function fund(array $overrides = []): array
     {
-        /** @var array{name: string, category: string, asset_class: string, invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, first_investment: ?string, sips: list<array{amount_paise: int, day: int}>} */
+        /** @var array{name: string, category: string, asset_class: string, invested_paise: int, value_paise: int, unrealised_gain_paise: int, absolute_return_pct: ?float, realised_gain_paise: int, xirr: ?float, xirr_status: XirrStatus, first_investment: ?string, fund_stats: ?string, sips: list<array{amount_paise: int, day: int}>} */
         return [...[
             'name' => 'Test Fund',
             'category' => 'Equity Scheme - Flexi Cap Fund',
@@ -95,6 +97,7 @@ class PortfolioContextTest extends TestCase
             'xirr' => 0.1,
             'xirr_status' => XirrStatus::Ok,
             'first_investment' => null,
+            'fund_stats' => null,
             'sips' => [],
         ], ...$overrides];
     }

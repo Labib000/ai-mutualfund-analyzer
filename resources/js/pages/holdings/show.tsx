@@ -7,6 +7,7 @@ import TransactionController from '@/actions/App/Http/Controllers/Portfolio/Tran
 import ExplainFundDialog from '@/components/ai/explain-fund-dialog';
 import AlertError from '@/components/alert-error';
 import ConfirmDialog from '@/components/portfolio/confirm-dialog';
+import FundFactsCard from '@/components/portfolio/fund-facts-card';
 import Gain from '@/components/portfolio/gain';
 import PurchaseDialog from '@/components/portfolio/purchase-dialog';
 import RedemptionDialog from '@/components/portfolio/redemption-dialog';
@@ -32,6 +33,7 @@ import {
 } from '@/lib/format';
 import { index } from '@/routes/holdings';
 import type {
+    FundStats,
     HoldingSummary,
     PortfolioSip,
     PortfolioTransaction,
@@ -49,12 +51,14 @@ export default function HoldingShow({
     transactions,
     sips,
     today,
+    fund_stats: fundStats,
     ai_remaining: aiRemaining,
 }: {
     holding: HoldingSummary;
     transactions: PortfolioTransaction[];
     sips: PortfolioSip[];
     today: string;
+    fund_stats: FundStats | null;
     ai_remaining: number;
 }) {
     const { errors } = usePage().props;
@@ -148,6 +152,8 @@ export default function HoldingShow({
                             ` on ${formatDate(holding.scheme.latest_nav_date)}`}
                     </p>
                 </div>
+
+                {fundStats && <FundFactsCard stats={fundStats} />}
 
                 {sips.length > 0 && (
                     <Card>

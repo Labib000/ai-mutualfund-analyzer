@@ -153,6 +153,10 @@ class AiFeaturesTest extends TestCase
         $this->assertStringContainsString('<fund_data>', $prompt);
         $this->assertStringContainsString("Scheme: Axis Children's Fund - Direct Plan - Growth Option", $prompt);
         $this->assertStringContainsString('Plan: Direct', $prompt);
+        $this->assertStringContainsString('Past NAV returns up to 7 Oct 2026: 1 year +', $prompt);
+        $this->assertStringContainsString('since 1 Jan 2025 ', $prompt);
+        $this->assertStringContainsString('Volatility (annualised', $prompt);
+        $this->assertStringContainsString('Largest fall from a peak since 1 Jan 2025: −49.9% (from 5 Oct 2026 to 6 Oct 2026).', $prompt);
         $this->assertStringContainsString(Prompts::EXPLAIN_TASK, $prompt);
 
         // Another user holding the same scheme gets the cached explanation for free.

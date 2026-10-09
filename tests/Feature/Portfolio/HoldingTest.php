@@ -156,7 +156,17 @@ class HoldingTest extends TestCase
                 ->has('sips', 1)
                 ->where('sips.0.is_running', true)
                 ->where('sips.0.next_due', '2026-10-31')
-                ->where('sips.0.earliest_end_date', '2026-09-30'));
+                ->where('sips.0.earliest_end_date', '2026-09-30')
+                ->where('fund_stats.as_of', '2026-10-07')
+                ->where('fund_stats.since', '2025-01-01'));
+    }
+
+    public function test_a_fund_without_nav_history_has_no_fund_facts()
+    {
+        $this->actingAs($this->user)
+            ->get(route('holdings.show', $this->holding))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('fund_stats', null));
     }
 
     public function test_another_users_holding_is_not_found()

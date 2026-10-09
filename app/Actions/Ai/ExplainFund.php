@@ -5,12 +5,14 @@ namespace App\Actions\Ai;
 use App\Ai\AiQuotaExceededException;
 use App\Ai\AiRequest;
 use App\Ai\AiUnavailableException;
+use App\Ai\FundFacts;
 use App\Ai\Prompts;
 use App\Ai\RunAiFeature;
 use App\Enums\AiFeature;
 use App\Enums\AssetClass;
 use App\Models\Scheme;
 use App\Models\User;
+use App\Nav\SchemeStats;
 use Illuminate\Support\Facades\Cache;
 
 class ExplainFund
@@ -18,7 +20,10 @@ class ExplainFund
     /** Explanations aren't personal, so one per scheme is shared by everyone for a month. */
     private const CACHE_DAYS = 30;
 
-    public function __construct(private readonly RunAiFeature $run) {}
+    public function __construct(
+        private readonly RunAiFeature $run,
+        private readonly SchemeStats $stats,
+    ) {}
 
     /**
      * @return array{text: string, cached: bool}
@@ -37,7 +42,7 @@ class ExplainFund
 
         $text = $this->run->handle($user, AiFeature::Explain, new AiRequest(
             system: Prompts::SYSTEM,
-            messages: [['role' => 'user', 'content' => Prompts::explain(self::facts($scheme))]],
+            messages: [['role' => 'user', 'content' => Prompts::explain($this->facts($scheme))]],
             maxOutputTokens: config()->integer('ai.max_output_tokens'),
         ))->text;
 
@@ -46,7 +51,7 @@ class ExplainFund
         return ['text' => $text, 'cached' => false];
     }
 
-    private static function facts(Scheme $scheme): string
+    private function facts(Scheme $scheme): string
     {
         $lines = [
             "Scheme: {$scheme->name}",
@@ -63,6 +68,9 @@ class ExplainFund
         if ($scheme->latest_nav !== null && $scheme->latest_nav_date !== null) {
             $lines[] = "Latest NAV: ₹{$scheme->latest_nav} on ".$scheme->latest_nav_date->format('j M Y');
         }
+
+        $stats = $this->stats->for($scheme);
+        $lines[] = $stats === null ? 'Past returns: not enough NAV history.' : FundFacts::full($stats);
 
         return implode("\n", $lines);
     }
